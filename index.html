@@ -742,10 +742,15 @@ async function handlePIUpload(input) {
 
   try {
     let messageContent = [];
+
     if (file.type === 'application/pdf') {
-      const base64 = await fileToBase64(file);
+      // Convertit le PDF en images via PDF.js puis envoie les pages à Claude
+      const images = await pdfToImages(file, 3); // max 3 premières pages
       messageContent = [
-        {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
+        ...images.map(imgData => ({
+          type:'image',
+          source:{type:'base64', media_type:'image/jpeg', data:imgData}
+        })),
         {type:'text', text: PIPrompt()}
       ];
     } else {
@@ -762,7 +767,9 @@ async function handlePIUpload(input) {
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user', content:messageContent}]})
     });
     const data = await response.json();
-    const result = JSON.parse(data.content[0].text.trim());
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content[0].text.trim();
+    const result = JSON.parse(text);
 
     if (result.prenom) document.getElementById('eleve-nom').value = result.prenom;
     if (result.classe) document.getElementById('eleve-classe').value = result.classe;
@@ -772,12 +779,46 @@ async function handlePIUpload(input) {
     if (result.adaptations) document.getElementById('eleve-adaptations').value = result.adaptations;
     toast('✨ PI analysé ! Vérifiez et complétez les informations.');
   } catch(e) {
+    console.error('Erreur PI:', e);
     toast('Analyse PI indisponible — remplissez manuellement.', 4000);
-    console.error(e);
   }
   document.getElementById('pi-analyze-status').classList.add('hidden');
   document.getElementById('pi-upload-zone').style.opacity = '1';
   document.getElementById('pi-upload-zone').style.pointerEvents = 'auto';
+}
+
+// Convertit les N premières pages d'un PDF en images base64 via PDF.js
+async function pdfToImages(file, maxPages = 3) {
+  // Charge PDF.js dynamiquement
+  if (!window.pdfjsLib) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  const numPages = Math.min(pdf.numPages, maxPages);
+  const images = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({scale: 1.5});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({canvasContext: ctx, viewport}).promise;
+    // Convertit en JPEG base64 (sans le préfixe data:...)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    images.push(dataUrl.split(',')[1]);
+  }
+  return images;
 }
 
 function PIPrompt() {
