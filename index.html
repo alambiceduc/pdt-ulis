@@ -3,461 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDT — Plans de Travail ULIS</title>
+<title>PDT ULIS — Plans de Travail</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap');
-
   :root {
-    --c-teal: #1D9E75; --c-teal-light: #E1F5EE; --c-teal-mid: #5DCAA5; --c-teal-dark: #0F6E56;
-    --c-blue: #378ADD; --c-blue-light: #E6F1FB; --c-blue-mid: #85B7EB; --c-blue-dark: #185FA5;
-    --c-amber: #EF9F27; --c-amber-light: #FAEEDA; --c-amber-dark: #854F0B;
-    --c-coral: #D85A30; --c-coral-light: #FAECE7; --c-coral-dark: #993C1D;
-    --c-purple: #7F77DD; --c-purple-light: #EEEDFE; --c-purple-dark: #3C3489;
-    --c-green: #639922; --c-green-light: #EAF3DE; --c-green-dark: #3B6D11;
-    --bg: #F7F6F2; --card: #FFFFFF; --border: #E5E3DC; --border-strong: #C8C6BC;
-    --text: #2C2C2A; --text-mid: #5F5E5A; --text-light: #888780;
-    --radius: 12px; --radius-sm: 8px;
+    --c-teal:#1D9E75;--c-teal-l:#E1F5EE;--c-teal-m:#5DCAA5;--c-teal-d:#0F6E56;
+    --c-blue:#378ADD;--c-blue-l:#E6F1FB;--c-blue-m:#85B7EB;--c-blue-d:#185FA5;
+    --c-amber:#EF9F27;--c-amber-l:#FAEEDA;--c-amber-d:#854F0B;
+    --c-coral:#D85A30;--c-coral-l:#FAECE7;--c-coral-d:#993C1D;
+    --c-purple:#7F77DD;--c-purple-l:#EEEDFE;--c-purple-d:#3C3489;
+    --c-green:#639922;--c-green-l:#EAF3DE;--c-green-d:#3B6D11;
+    --bg:#F7F6F2;--card:#FFFFFF;--border:#E5E3DC;--border-s:#C8C6BC;
+    --text:#2C2C2A;--text-m:#5F5E5A;--text-l:#888780;
+    --r:12px;--rs:8px;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Nunito Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
-
-  /* Layout */
-  .app { display: flex; min-height: 100vh; }
-  .sidebar { width: 230px; background: var(--card); border-right: 1px solid var(--border); padding: 0; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  .main { flex: 1; padding: 2rem; max-width: 1100px; overflow-x: hidden; }
-
-  .logo { padding: 1.5rem 1.25rem 1rem; border-bottom: 1px solid var(--border); }
-  .logo h1 { font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--c-teal-dark); line-height: 1.2; }
-  .logo p { font-size: 11px; color: var(--text-light); margin-top: 2px; }
-
-  nav { padding: 1rem 0; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 0.65rem 1.25rem; font-size: 14px; font-weight: 500; color: var(--text-mid); cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
-  .nav-item:hover { background: var(--bg); color: var(--text); }
-  .nav-item.active { background: var(--c-teal-light); color: var(--c-teal-dark); border-left-color: var(--c-teal); font-weight: 600; }
-  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
-  .nav-badge { margin-left: auto; background: var(--c-teal); color: white; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
-
-  /* Page sections */
-  .section { display: none; }
-  .section.active { display: block; }
-
-  .page-title { font-family: 'Nunito', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 0.3rem; }
-  .page-subtitle { color: var(--text-mid); margin-bottom: 1.75rem; font-size: 14px; }
-
-  /* Cards */
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
-  .card-lg { padding: 1.5rem; }
-
-  /* Grid */
-  .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
-  .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-
-  /* Buttons */
-  btn, .btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.55rem 1.1rem; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: 'Nunito Sans', sans-serif; }
-  .btn-primary { background: var(--c-teal); color: white; }
-  .btn-primary:hover { background: var(--c-teal-dark); }
-  .btn-secondary { background: transparent; color: var(--text-mid); border: 1px solid var(--border-strong); }
-  .btn-secondary:hover { background: var(--bg); color: var(--text); }
-  .btn-ghost { background: transparent; color: var(--text-mid); border: none; }
-  .btn-ghost:hover { color: var(--text); background: var(--bg); }
-  .btn-danger { background: var(--c-coral-light); color: var(--c-coral-dark); border: none; }
-  .btn-sm { padding: 0.35rem 0.8rem; font-size: 13px; }
-  .btn-xl { padding: 0.85rem 1.75rem; font-size: 15px; border-radius: var(--radius); }
-
-  /* Forms */
-  label { display: block; font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 5px; }
-  input[type=text], input[type=email], textarea, select { width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; font-family: 'Nunito Sans', sans-serif; color: var(--text); background: white; outline: none; transition: border-color 0.15s; }
-  input[type=text]:focus, textarea:focus, select:focus { border-color: var(--c-teal); }
-  textarea { resize: vertical; line-height: 1.5; }
-  .form-group { margin-bottom: 1rem; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-  /* Tags */
-  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-  .tag-teal { background: var(--c-teal-light); color: var(--c-teal-dark); }
-  .tag-blue { background: var(--c-blue-light); color: var(--c-blue-dark); }
-  .tag-amber { background: var(--c-amber-light); color: var(--c-amber-dark); }
-  .tag-purple { background: var(--c-purple-light); color: var(--c-purple-dark); }
-  .tag-coral { background: var(--c-coral-light); color: var(--c-coral-dark); }
-  .tag-green { background: var(--c-green-light); color: var(--c-green-dark); }
-
-  /* Upload zone */
-  .upload-zone { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--c-teal); background: var(--c-teal-light); }
-  .upload-zone input { display: none; }
-
-  /* Atelier card */
-  .atelier-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: box-shadow 0.15s; }
-  .atelier-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
-  .atelier-img { width: 100%; height: 130px; object-fit: cover; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 13px; }
-  .atelier-img img { width: 100%; height: 130px; object-fit: cover; }
-  .atelier-body { padding: 0.85rem; }
-  .atelier-title { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 5px; line-height: 1.3; }
-  .atelier-obj { font-size: 12px; color: var(--text-mid); line-height: 1.4; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .atelier-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-
-  /* Student card */
-  .student-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; cursor: pointer; transition: all 0.15s; }
-  .student-card:hover { border-color: var(--c-teal-mid); }
-  .student-card.selected { border-color: var(--c-teal); background: var(--c-teal-light); }
-  .student-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px; margin-bottom: 0.6rem; }
-  .student-name { font-weight: 700; font-size: 15px; }
-  .student-level { font-size: 12px; color: var(--text-mid); }
-
-  /* PDT */
-  .pdt-activity { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1rem; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
-  .pdt-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; font-family: 'Nunito', sans-serif; flex-shrink: 0; margin-top: 2px; }
-  .pdt-content { flex: 1; }
-  .pdt-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
-  .pdt-obj { font-size: 12px; color: var(--text-mid); }
-  .pdt-status { margin-left: auto; flex-shrink: 0; }
-
-  /* Status */
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-  .status-todo { background: var(--border-strong); }
-  .status-doing { background: var(--c-amber); }
-  .status-done { background: var(--c-teal); }
-  .status-review { background: var(--c-coral); }
-
-  /* Competence grid */
-  .comp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .comp-table th { text-align: left; padding: 8px 10px; background: var(--bg); color: var(--text-mid); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--border); }
-  .comp-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .comp-cell { width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.1s; border: 1px solid var(--border); }
-  .comp-cell.lvl-0 { background: white; }
-  .comp-cell.lvl-1 { background: var(--c-amber-light); border-color: var(--c-amber); }
-  .comp-cell.lvl-2 { background: var(--c-blue-light); border-color: var(--c-blue-mid); }
-  .comp-cell.lvl-3 { background: var(--c-teal-light); border-color: var(--c-teal); }
-
-  /* AI loading */
-  .ai-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; }
-  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--c-teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Toast */
-  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text); color: white; padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s; z-index: 9999; max-width: 320px; }
-  .toast.show { opacity: 1; }
-
-  /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: var(--radius); max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 1.75rem; }
-  .modal-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.2rem; margin-bottom: 1.25rem; }
-
-  /* Misc */
-  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-  .empty { text-align: center; padding: 3rem 1rem; color: var(--text-light); }
-  .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-  .flex { display: flex; } .gap-1 { gap: 0.5rem; } .gap-2 { gap: 1rem; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .flex-wrap { flex-wrap: wrap; }
-  .mb-1 { margin-bottom: 0.5rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; }
-  .mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
-  .text-sm { font-size: 13px; } .text-xs { font-size: 12px; } .text-mid { color: var(--text-mid); } .text-light { color: var(--text-light); }
-  .font-bold { font-family: 'Nunito', sans-serif; font-weight: 800; }
-  .w-full { width: 100%; }
-  .hidden { display: none !important; }
-
-  /* Print */
-  @media print {
-    .sidebar, .no-print { display: none !important; }
-    .main { padding: 0; }
-    .app { display: block; }
-    body { font-size: 12px; }
-    .pdt-activity { break-inside: avoid; }
-  }
-
-  @media (max-width: 700px) {
-    .sidebar { display: none; }
-    .main { padding: 1rem; }
-    .form-row { grid-template-columns: 1fr; }
-  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:230px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .main{flex:1;padding:2rem;max-width:1100px;overflow-x:hidden;}
+  .logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border);}
+  .logo h1{font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--c-teal-d);line-height:1.2;}
+  .logo p{font-size:11px;color:var(--text-l);margin-top:2px;}
+  nav{padding:1rem 0;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:.65rem 1.25rem;font-size:14px;font-weight:500;color:var(--text-m);cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+  .nav-item:hover{background:var(--bg);color:var(--text);}
+  .nav-item.active{background:var(--c-teal-l);color:var(--c-teal-d);border-left-color:var(--c-teal);font-weight:600;}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;}
+  .nav-badge{margin-left:auto;background:var(--c-teal);color:white;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;}
+  .section{display:none;}.section.active{display:block;}
+  .page-title{font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:.3rem;}
+  .page-sub{color:var(--text-m);margin-bottom:1.75rem;font-size:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;}
+  .card-lg{padding:1.5rem;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+  .grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .btn-primary{background:var(--c-teal);color:white;}.btn-primary:hover{background:var(--c-teal-d);}
+  .btn-secondary{background:transparent;color:var(--text-m);border:1px solid var(--border-s);}.btn-secondary:hover{background:var(--bg);}
+  .btn-sm{padding:.35rem .8rem;font-size:13px;}
+  .btn-xl{padding:.85rem 1.75rem;font-size:15px;border-radius:var(--r);}
+  label{display:block;font-size:13px;font-weight:600;color:var(--text-m);margin-bottom:5px;}
+  input[type=text],textarea,select{width:100%;padding:.6rem .85rem;border:1px solid var(--border-s);border-radius:var(--rs);font-size:14px;font-family:'Nunito Sans',sans-serif;color:var(--text);background:white;outline:none;transition:border-color .15s;}
+  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--c-teal);}
+  textarea{resize:vertical;line-height:1.5;}
+  .form-group{margin-bottom:1rem;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .tag-teal{background:var(--c-teal-l);color:var(--c-teal-d);}
+  .tag-blue{background:var(--c-blue-l);color:var(--c-blue-d);}
+  .tag-amber{background:var(--c-amber-l);color:var(--c-amber-d);}
+  .tag-purple{background:var(--c-purple-l);color:var(--c-purple-d);}
+  .tag-coral{background:var(--c-coral-l);color:var(--c-coral-d);}
+  .tag-green{background:var(--c-green-l);color:var(--c-green-d);}
+  .upload-zone{border:2px dashed var(--border-s);border-radius:var(--r);padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--c-teal);background:var(--c-teal-l);}
+  .upload-zone input{display:none;}
+  .atelier-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s;}
+  .atelier-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);}
+  .atelier-img{width:100%;height:130px;object-fit:cover;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text-l);font-size:13px;}
+  .atelier-img img{width:100%;height:130px;object-fit:cover;}
+  .atelier-body{padding:.85rem;}
+  .atelier-title{font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;margin-bottom:5px;line-height:1.3;}
+  .atelier-obj{font-size:12px;color:var(--text-m);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .atelier-tags{display:flex;flex-wrap:wrap;gap:4px;}
+  .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;cursor:pointer;transition:all .15s;}
+  .student-card:hover{border-color:var(--c-teal-m);}
+  .student-card.selected{border-color:var(--c-teal);background:var(--c-teal-l);}
+  .student-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;margin-bottom:.6rem;}
+  .pdt-activity{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.9rem 1rem;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+  .pdt-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;font-family:'Nunito',sans-serif;flex-shrink:0;margin-top:2px;}
+  .pdt-content{flex:1;}
+  .pdt-title{font-weight:700;font-size:14px;margin-bottom:3px;}
+  .pdt-obj{font-size:12px;color:var(--text-m);}
+  .ai-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--c-teal);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:white;padding:.75rem 1.25rem;border-radius:var(--rs);font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;z-index:9999;max-width:320px;}
+  .toast.show{opacity:1;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:white;border-radius:var(--r);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:1.75rem;}
+  .modal-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:1.25rem;}
+  .empty{text-align:center;padding:3rem 1rem;color:var(--text-l);}
+  .empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+  .flex{display:flex;}.gap-1{gap:.5rem;}.gap-2{gap:1rem;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.flex-wrap{flex-wrap:wrap;}
+  .mb-1{margin-bottom:.5rem;}.mb-2{margin-bottom:1rem;}.mb-3{margin-bottom:1.5rem;}
+  .mt-1{margin-top:.5rem;}.mt-2{margin-top:1rem;}
+  .text-sm{font-size:13px;}.text-xs{font-size:12px;}.text-mid{color:var(--text-m);}.text-light{color:var(--text-l);}
+  .font-bold{font-family:'Nunito',sans-serif;font-weight:800;}
+  .w-full{width:100%;}.hidden{display:none!important;}
+  .db-stat{border-left:4px solid var(--c);}
+  .filter-btn.active{background:var(--c-teal-l);color:var(--c-teal-d);border-color:var(--c-teal);}
+  @media(max-width:700px){.sidebar{display:none;}.main{padding:1rem;}.form-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="logo">
     <h1>PDT ULIS</h1>
     <p>Plans de travail adaptés</p>
   </div>
   <nav>
-    <div class="nav-item active" onclick="showSection('dashboard')">
+    <div class="nav-item active" onclick="showSection('dashboard',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Tableau de bord
     </div>
-    <div class="nav-item" onclick="showSection('ateliers')">
+    <div class="nav-item" onclick="showSection('ateliers',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       Bibliothèque
       <span class="nav-badge" id="badge-ateliers">0</span>
     </div>
-    <div class="nav-item" onclick="showSection('eleves')">
+    <div class="nav-item" onclick="showSection('eleves',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Élèves / PI
       <span class="nav-badge" id="badge-eleves">0</span>
     </div>
-    <div class="nav-item" onclick="showSection('generer')">
+    <div class="nav-item" onclick="showSection('generer',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       Générer PDT
     </div>
-    <div class="nav-item" onclick="showSection('suivi')">
+    <div class="nav-item" onclick="showSection('suivi',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Suivi compétences
     </div>
   </nav>
 </aside>
 
-<!-- MAIN CONTENT -->
 <main class="main">
 
   <!-- DASHBOARD -->
   <div class="section active" id="section-dashboard">
     <div class="page-title">Bonjour 👋</div>
-    <div class="page-subtitle">Bienvenue dans votre espace de plans de travail ULIS</div>
-
+    <div class="page-sub">Bienvenue dans votre espace de plans de travail ULIS</div>
     <div class="grid-2 mb-3">
-      <div class="card" style="border-left: 4px solid var(--c-teal);">
-        <div class="text-sm text-mid mb-1">Ateliers en bibliothèque</div>
-        <div style="font-family: 'Nunito'; font-size: 2rem; font-weight: 800; color: var(--c-teal-dark);" id="stat-ateliers">0</div>
-      </div>
-      <div class="card" style="border-left: 4px solid var(--c-blue);">
-        <div class="text-sm text-mid mb-1">Élèves suivis</div>
-        <div style="font-family: 'Nunito'; font-size: 2rem; font-weight: 800; color: var(--c-blue-dark);" id="stat-eleves">0</div>
-      </div>
-      <div class="card" style="border-left: 4px solid var(--c-amber);">
-        <div class="text-sm text-mid mb-1">PDT générés</div>
-        <div style="font-family: 'Nunito'; font-size: 2rem; font-weight: 800; color: var(--c-amber-dark);" id="stat-pdts">0</div>
-      </div>
-      <div class="card" style="border-left: 4px solid var(--c-purple);">
-        <div class="text-sm text-mid mb-1">Activités validées</div>
-        <div style="font-family: 'Nunito'; font-size: 2rem; font-weight: 800; color: var(--c-purple-dark);" id="stat-done">0</div>
-      </div>
+      <div class="card" style="border-left:4px solid var(--c-teal)"><div class="text-sm text-mid mb-1">Ateliers</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-teal-d)" id="stat-ateliers">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-blue)"><div class="text-sm text-mid mb-1">Élèves suivis</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-blue-d)" id="stat-eleves">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-amber)"><div class="text-sm text-mid mb-1">PDT générés</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-amber-d)" id="stat-pdts">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-purple)"><div class="text-sm text-mid mb-1">Activités validées</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-purple-d)" id="stat-done">—</div></div>
     </div>
-
     <div class="card">
-      <div class="font-bold mb-2" style="font-size: 1rem;">Comment ça marche ?</div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
-        <div style="text-align: center; padding: 1rem;">
-          <div style="width: 48px; height: 48px; background: var(--c-teal-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 22px;">📷</div>
-          <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">1 · Importer des ateliers</div>
-          <div class="text-sm text-mid">Photo + l'IA détecte automatiquement domaine, objectifs et niveaux</div>
-        </div>
-        <div style="text-align: center; padding: 1rem;">
-          <div style="width: 48px; height: 48px; background: var(--c-blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 22px;">👤</div>
-          <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">2 · Saisir les PI</div>
-          <div class="text-sm text-mid">Profils, objectifs individualisés et adaptations de chaque élève</div>
-        </div>
-        <div style="width: 48px; height: 48px; background: var(--c-amber-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 1rem auto 0.75rem; font-size: 22px; text-align: center; grid-column: 1/-1;" id="step3-icon">🧠</div>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 0;">
-        <div style="text-align: center; padding: 1rem;">
-          <div style="width: 48px; height: 48px; background: var(--c-amber-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 22px;">🧠</div>
-          <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">3 · Générer le PDT</div>
-          <div class="text-sm text-mid">L'IA propose un plan adapté avec les ateliers disponibles</div>
-        </div>
-        <div style="text-align: center; padding: 1rem;">
-          <div style="width: 48px; height: 48px; background: var(--c-purple-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 22px;">📊</div>
-          <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">4 · Suivre les progrès</div>
-          <div class="text-sm text-mid">Tableau de compétences mis à jour à chaque PDT complété</div>
-        </div>
+      <div class="font-bold mb-2" style="font-size:1rem">Comment ça marche ?</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-teal-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">📷</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">1 · Importer des ateliers</div><div class="text-sm text-mid">Photo + l'IA détecte automatiquement domaine, objectifs et niveaux</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">👤</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">2 · Saisir les PI</div><div class="text-sm text-mid">Profils, objectifs individualisés et adaptations de chaque élève</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-amber-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">🧠</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">3 · Générer le PDT</div><div class="text-sm text-mid">L'IA propose un plan adapté avec les ateliers disponibles</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-purple-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">📊</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">4 · Suivre les progrès</div><div class="text-sm text-mid">Tableau mis à jour à chaque PDT complété</div></div>
       </div>
     </div>
   </div>
 
-  <!-- BIBLIOTHÈQUE ATELIERS -->
+  <!-- ATELIERS -->
   <div class="section" id="section-ateliers">
     <div class="flex justify-between items-center mb-1">
-      <div>
-        <div class="page-title">Bibliothèque d'ateliers</div>
-        <div class="page-subtitle">Importez vos photos — l'IA analyse et classe automatiquement</div>
+      <div><div class="page-title">Bibliothèque d'ateliers</div><div class="page-sub">Importez vos photos — l'IA analyse et classe automatiquement</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" onclick="openModal('modal-batch-ateliers')">📦 Import en lot</button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-atelier')">+ Ajouter un atelier</button>
       </div>
-      <button class="btn btn-primary" onclick="openModal('modal-add-atelier')">+ Ajouter un atelier</button>
     </div>
-
-    <!-- Filtres -->
-    <div class="card mb-3" style="padding: 0.85rem 1.25rem;">
+    <div class="card mb-3" style="padding:.85rem 1.25rem">
       <div class="flex gap-1 flex-wrap items-center">
-        <span class="text-sm text-mid" style="margin-right: 4px;">Filtrer :</span>
-        <button class="btn btn-sm btn-secondary filter-btn active" data-domain="all">Tous</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Mathématiques">Maths</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Lecture / Langage">Lecture</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Motricité fine">Motricité</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Autonomie">Autonomie</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Socio-émotionnel">Socio-émotionnel</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Sciences / Découverte">Sciences</button>
+        <span class="text-sm text-mid" style="margin-right:4px">Filtrer :</span>
+        <button class="btn btn-sm btn-secondary filter-btn active" data-domain="all" onclick="setFilter(this)">Tous</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Mathématiques" onclick="setFilter(this)">Maths</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Lecture / Langage" onclick="setFilter(this)">Lecture</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Motricité fine" onclick="setFilter(this)">Motricité</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Autonomie" onclick="setFilter(this)">Autonomie</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Socio-émotionnel" onclick="setFilter(this)">Socio-émotionnel</button>
       </div>
     </div>
-
-    <div class="grid-3" id="ateliers-grid">
-      <div class="empty" style="grid-column: 1/-1;">
-        <div class="empty-icon">🎲</div>
-        <div>Aucun atelier pour l'instant.</div>
-        <div class="text-sm mt-1">Cliquez sur "Ajouter un atelier" pour commencer.</div>
-      </div>
-    </div>
+    <div class="grid-3" id="ateliers-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
   </div>
 
-  <!-- ÉLÈVES / PI -->
+  <!-- ÉLÈVES -->
   <div class="section" id="section-eleves">
     <div class="flex justify-between items-center mb-1">
-      <div>
-        <div class="page-title">Élèves & Projets Individualisés</div>
-        <div class="page-subtitle">Saisissez les profils et objectifs de chaque élève</div>
-      </div>
+      <div><div class="page-title">Élèves & Projets Individualisés</div><div class="page-sub">Saisissez les profils et objectifs de chaque élève</div></div>
       <button class="btn btn-primary" onclick="openModal('modal-add-eleve')">+ Ajouter un élève</button>
     </div>
-
-    <div class="grid-2" id="eleves-grid">
-      <div class="empty" style="grid-column: 1/-1;">
-        <div class="empty-icon">👤</div>
-        <div>Aucun élève pour l'instant.</div>
-      </div>
-    </div>
+    <div class="grid-2" id="eleves-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
   </div>
 
   <!-- GÉNÉRER PDT -->
   <div class="section" id="section-generer">
     <div class="page-title">Générer un Plan de Travail</div>
-    <div class="page-subtitle">L'IA sélectionne les ateliers adaptés au profil de l'élève</div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;" id="generer-layout">
-      <!-- Paramètres -->
+    <div class="page-sub">L'IA sélectionne les ateliers adaptés au profil de l'élève</div>
+    <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem">
       <div>
         <div class="card card-lg mb-2">
-          <div class="font-bold mb-2" style="font-size: 0.95rem;">1 · Choisir l'élève</div>
-          <div id="select-student-list"></div>
+          <div class="font-bold mb-2" style="font-size:.95rem">1 · Choisir l'élève</div>
+          <div id="select-student-list"><div class="text-sm text-mid">Chargement...</div></div>
         </div>
-
         <div class="card card-lg mb-2">
-          <div class="font-bold mb-2" style="font-size: 0.95rem;">2 · Paramètres du PDT</div>
-          <div class="form-group">
-            <label>Semaine du</label>
-            <input type="text" id="pdt-semaine" placeholder="ex : 24 mars 2025" />
-          </div>
-          <div class="form-group">
-            <label>Nombre d'activités (5–12)</label>
-            <input type="text" id="pdt-nb" placeholder="8" value="8" />
-          </div>
-          <div class="form-group">
-            <label>Consignes particulières (optionnel)</label>
-            <textarea id="pdt-consignes" rows="3" placeholder="Ex : pas de manipulation fine cette semaine, focus sur les maths..."></textarea>
-          </div>
+          <div class="font-bold mb-2" style="font-size:.95rem">2 · Paramètres</div>
+          <div class="form-group"><label>Semaine du</label><input type="text" id="pdt-semaine" placeholder="ex : 24 mars 2025"/></div>
+          <div class="form-group"><label>Nombre d'activités (5–12)</label><input type="text" id="pdt-nb" value="8"/></div>
+          <div class="form-group"><label>Consignes particulières (optionnel)</label><textarea id="pdt-consignes" rows="3" placeholder="Ex : focus sur les maths cette semaine..."></textarea></div>
         </div>
-
         <button class="btn btn-primary btn-xl w-full" onclick="generatePDT()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           Générer avec l'IA
         </button>
       </div>
-
-      <!-- Résultat PDT -->
       <div id="pdt-result">
-        <div class="card" style="height: 100%; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-style: dashed; background: var(--bg);">
-          <div style="font-size: 2.5rem; margin-bottom: 1rem;">📋</div>
-          <div class="text-mid" style="font-size: 14px;">Le plan de travail apparaîtra ici</div>
+        <div class="card" style="height:100%;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;background:var(--bg)">
+          <div style="font-size:2.5rem;margin-bottom:1rem">📋</div>
+          <div class="text-mid" style="font-size:14px">Le plan de travail apparaîtra ici</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SUIVI COMPÉTENCES -->
+  <!-- SUIVI -->
   <div class="section" id="section-suivi">
     <div class="page-title">Suivi des compétences</div>
-    <div class="page-subtitle">Tableau de bord mis à jour à chaque plan de travail</div>
-
-    <div class="card mb-2" style="padding: 0.85rem 1.25rem;">
+    <div class="page-sub">Tableau de bord mis à jour à chaque plan de travail</div>
+    <div class="card mb-2" style="padding:.85rem 1.25rem">
       <div class="flex gap-2 items-center flex-wrap">
-        <label style="margin: 0;">Élève :</label>
-        <select id="suivi-eleve-select" onchange="renderSuivi()" style="width: auto;">
-          <option value="">— Choisir —</option>
-        </select>
-        <div class="flex gap-1 items-center" style="margin-left: auto;">
-          <span style="width: 14px; height: 14px; background: var(--c-amber-light); border: 1px solid var(--c-amber); border-radius: 3px; display: inline-block;"></span><span class="text-xs text-mid">En cours</span>
-          <span style="width: 14px; height: 14px; background: var(--c-blue-light); border: 1px solid var(--c-blue-mid); border-radius: 3px; display: inline-block; margin-left: 6px;"></span><span class="text-xs text-mid">Acquis partiellement</span>
-          <span style="width: 14px; height: 14px; background: var(--c-teal-light); border: 1px solid var(--c-teal); border-radius: 3px; display: inline-block; margin-left: 6px;"></span><span class="text-xs text-mid">Acquis</span>
+        <label style="margin:0">Élève :</label>
+        <select id="suivi-eleve-select" onchange="renderSuivi()" style="width:auto"><option value="">— Choisir —</option></select>
+        <div class="flex gap-1 items-center" style="margin-left:auto">
+          <span style="width:14px;height:14px;background:var(--c-amber-l);border:1px solid var(--c-amber);border-radius:3px;display:inline-block"></span><span class="text-xs text-mid">En cours</span>
+          <span style="width:14px;height:14px;background:var(--c-blue-l);border:1px solid var(--c-blue-m);border-radius:3px;display:inline-block;margin-left:6px"></span><span class="text-xs text-mid">Partiel</span>
+          <span style="width:14px;height:14px;background:var(--c-teal-l);border:1px solid var(--c-teal);border-radius:3px;display:inline-block;margin-left:6px"></span><span class="text-xs text-mid">Acquis</span>
         </div>
       </div>
     </div>
-
-    <div id="suivi-content">
-      <div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève pour voir son suivi</div></div>
-    </div>
+    <div id="suivi-content"><div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève</div></div></div>
   </div>
 
 </main>
 </div>
 
-<!-- MODAL : Ajouter atelier -->
+<!-- MODAL atelier -->
 <div class="modal-overlay" id="modal-add-atelier">
   <div class="modal">
     <div class="modal-title">Ajouter un atelier</div>
-
     <div class="upload-zone mb-2" id="upload-zone" onclick="document.getElementById('file-input').click()">
       <input type="file" id="file-input" accept="image/*" onchange="handleImageUpload(this)">
-      <div style="font-size: 2rem; margin-bottom: 0.75rem;">📷</div>
-      <div class="font-bold" style="font-size: 14px; margin-bottom: 4px;">Glissez une photo ou cliquez</div>
+      <div style="font-size:2rem;margin-bottom:.75rem">📷</div>
+      <div class="font-bold" style="font-size:14px;margin-bottom:4px">Glissez une photo ou cliquez</div>
       <div class="text-sm text-mid">L'IA analysera automatiquement l'atelier</div>
     </div>
-
-    <div id="upload-preview" class="hidden mb-2">
-      <img id="preview-img" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-sm);" />
-    </div>
-
-    <div id="ai-analyze-status" class="hidden">
-      <div class="ai-loading">
-        <div class="spinner"></div>
-        <div class="text-sm text-mid">L'IA analyse la photo...</div>
-      </div>
-    </div>
-
+    <div id="upload-preview" class="hidden mb-2"><img id="preview-img" style="width:100%;height:160px;object-fit:cover;border-radius:var(--rs)"/></div>
+    <div id="ai-analyze-status" class="hidden"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA analyse la photo...</div></div></div>
     <div id="atelier-form">
       <div class="form-row">
-        <div class="form-group">
-          <label>Nom de l'atelier *</label>
-          <input type="text" id="atelier-title" placeholder="ex : Jeu de tri des formes" />
-        </div>
-        <div class="form-group">
-          <label>Domaine *</label>
+        <div class="form-group"><label>Nom de l'atelier *</label><input type="text" id="atelier-title" placeholder="ex : Jeu de tri des formes"/></div>
+        <div class="form-group"><label>Domaine *</label>
           <select id="atelier-domain">
             <option value="">— Choisir —</option>
-            <option>Mathématiques</option>
-            <option>Lecture / Langage</option>
-            <option>Motricité fine</option>
-            <option>Autonomie</option>
-            <option>Socio-émotionnel</option>
-            <option>Sciences / Découverte</option>
-            <option>Arts / Créativité</option>
-            <option>Vie pratique</option>
+            <option>Mathématiques</option><option>Lecture / Langage</option>
+            <option>Motricité fine</option><option>Autonomie</option>
+            <option>Socio-émotionnel</option><option>Sciences / Découverte</option>
+            <option>Arts / Créativité</option><option>Vie pratique</option>
           </select>
         </div>
       </div>
-      <div class="form-group">
-        <label>Objectif pédagogique</label>
-        <textarea id="atelier-obj" rows="2" placeholder="Ce que l'élève va apprendre ou exercer"></textarea>
-      </div>
+      <div class="form-group"><label>Objectif pédagogique</label><textarea id="atelier-obj" rows="2" placeholder="Ce que l'élève va apprendre ou exercer"></textarea></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Niveau(x)</label>
-          <input type="text" id="atelier-levels" placeholder="ex : CP, CE1, CE2" />
-        </div>
-        <div class="form-group">
-          <label>Durée estimée</label>
-          <select id="atelier-duree">
-            <option value="10">10 min</option>
-            <option value="15">15 min</option>
-            <option value="20" selected>20 min</option>
-            <option value="30">30 min</option>
-            <option value="45">45 min</option>
-          </select>
+        <div class="form-group"><label>Niveau(x)</label><input type="text" id="atelier-levels" placeholder="ex : CP, CE1, CE2"/></div>
+        <div class="form-group"><label>Durée estimée</label>
+          <select id="atelier-duree"><option value="10">10 min</option><option value="15">15 min</option><option value="20" selected>20 min</option><option value="30">30 min</option><option value="45">45 min</option></select>
         </div>
       </div>
-      <div class="form-group">
-        <label>Notes / Adaptations</label>
-        <input type="text" id="atelier-notes" placeholder="ex : nécessite aide au démarrage" />
-      </div>
+      <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="atelier-notes" placeholder="ex : nécessite aide au démarrage"/></div>
     </div>
-
     <div class="flex gap-1 justify-between mt-2">
       <button class="btn btn-secondary" onclick="closeModal('modal-add-atelier')">Annuler</button>
       <button class="btn btn-primary" onclick="saveAtelier()">Enregistrer l'atelier</button>
@@ -465,42 +280,34 @@
   </div>
 </div>
 
-<!-- MODAL : Ajouter élève -->
+<!-- MODAL élève -->
 <div class="modal-overlay" id="modal-add-eleve">
-  <div class="modal">
+  <div class="modal" style="max-width:640px">
     <div class="modal-title">Profil élève & Projet Individualisé</div>
 
+    <!-- Import PI -->
+    <div style="background:var(--c-blue-l);border:1px solid var(--c-blue-m);border-radius:var(--rs);padding:1rem;margin-bottom:1.25rem">
+      <div style="font-weight:700;font-size:13px;color:var(--c-blue-d);margin-bottom:.5rem">📄 Importer un PI existant (optionnel)</div>
+      <div style="font-size:12px;color:var(--text-m);margin-bottom:.75rem">PDF ou photo/scan — l'IA lit le document et remplit les cases automatiquement</div>
+      <div class="upload-zone" id="pi-upload-zone" onclick="document.getElementById('pi-file-input').click()" style="padding:1.25rem;background:white">
+        <input type="file" id="pi-file-input" accept=".pdf,image/*" onchange="handlePIUpload(this)">
+        <div style="font-size:1.5rem;margin-bottom:.4rem">📎</div>
+        <div style="font-size:13px;font-weight:600">Glissez le PI ici ou cliquez</div>
+        <div style="font-size:11px;color:var(--text-l);margin-top:2px">PDF ou photo acceptés</div>
+      </div>
+      <div id="pi-analyze-status" class="hidden mt-1">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-blue-d)"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div>L'IA lit le document PI...</div>
+      </div>
+    </div>
+
     <div class="form-row">
-      <div class="form-group">
-        <label>Prénom *</label>
-        <input type="text" id="eleve-nom" placeholder="Prénom de l'élève" />
-      </div>
-      <div class="form-group">
-        <label>Classe de rattachement</label>
-        <input type="text" id="eleve-classe" placeholder="ex : CE2, 6e..." />
-      </div>
+      <div class="form-group"><label>Prénom *</label><input type="text" id="eleve-nom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Classe de rattachement</label><input type="text" id="eleve-classe" placeholder="ex : CE2, 6e..."/></div>
     </div>
-
-    <div class="form-group">
-      <label>Difficultés principales (séparées par des virgules)</label>
-      <input type="text" id="eleve-difficultes" placeholder="ex : lecture, concentration, motricité fine" />
-    </div>
-
-    <div class="form-group">
-      <label>Points forts & appuis</label>
-      <input type="text" id="eleve-forces" placeholder="ex : mémoire visuelle, autonomie, maths" />
-    </div>
-
-    <div class="form-group">
-      <label>Objectifs prioritaires du PI</label>
-      <textarea id="eleve-objectifs" rows="3" placeholder="Décrivez les objectifs du projet individualisé de l'élève..."></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Adaptations nécessaires</label>
-      <textarea id="eleve-adaptations" rows="2" placeholder="ex : consignes orales, temps allongé, matériel adapté..."></textarea>
-    </div>
-
+    <div class="form-group"><label>Difficultés principales (séparées par des virgules)</label><input type="text" id="eleve-difficultes" placeholder="ex : lecture, concentration, motricité fine"/></div>
+    <div class="form-group"><label>Points forts & appuis</label><input type="text" id="eleve-forces" placeholder="ex : mémoire visuelle, autonomie"/></div>
+    <div class="form-group"><label>Objectifs prioritaires du PI</label><textarea id="eleve-objectifs" rows="3" placeholder="Décrivez les objectifs du projet individualisé..."></textarea></div>
+    <div class="form-group"><label>Adaptations nécessaires</label><textarea id="eleve-adaptations" rows="2" placeholder="ex : consignes orales, temps allongé..."></textarea></div>
     <div class="flex gap-1 justify-between mt-2">
       <button class="btn btn-secondary" onclick="closeModal('modal-add-eleve')">Annuler</button>
       <button class="btn btn-primary" onclick="saveEleve()">Enregistrer le profil</button>
@@ -508,14 +315,38 @@
   </div>
 </div>
 
-<!-- MODAL : Voir PDT -->
-<div class="modal-overlay" id="modal-pdt-detail">
-  <div class="modal" style="max-width: 700px;">
-    <div class="modal-title" id="pdt-detail-title">Plan de travail</div>
-    <div id="pdt-detail-content"></div>
-    <div class="flex gap-1 justify-between mt-2">
-      <button class="btn btn-secondary" onclick="closeModal('modal-pdt-detail')">Fermer</button>
-      <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimer</button>
+<!-- MODAL import lot ateliers -->
+<div class="modal-overlay" id="modal-batch-ateliers">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-title">📦 Import en lot — Ateliers</div>
+
+    <div id="batch-step-1">
+      <div class="upload-zone" id="batch-upload-zone" onclick="document.getElementById('batch-file-input').click()">
+        <input type="file" id="batch-file-input" accept="image/*" multiple onchange="handleBatchUpload(this)">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🖼️</div>
+        <div class="font-bold" style="font-size:15px;margin-bottom:4px">Sélectionnez toutes vos photos d'ateliers</div>
+        <div class="text-sm text-mid">Plusieurs fichiers à la fois — l'IA analyse chaque photo</div>
+      </div>
+      <div class="flex gap-1 justify-between mt-2">
+        <button class="btn btn-secondary" onclick="closeModal('modal-batch-ateliers')">Annuler</button>
+      </div>
+    </div>
+
+    <div id="batch-step-2" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div>
+          <div class="font-bold" style="font-size:1rem">Vérification des ateliers détectés</div>
+          <div class="text-sm text-mid" id="batch-progress-label">Analyse en cours...</div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-batch-ateliers')">Annuler</button>
+          <button class="btn btn-primary btn-sm" id="batch-save-btn" onclick="saveBatchAteliers()" style="display:none">✅ Tout enregistrer</button>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;margin-bottom:1.25rem;overflow:hidden">
+        <div id="batch-progress-bar" style="height:100%;background:var(--c-teal);border-radius:3px;transition:width .4s;width:0%"></div>
+      </div>
+      <div id="batch-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;max-height:60vh;overflow-y:auto;padding-right:4px"></div>
     </div>
   </div>
 </div>
@@ -523,352 +354,256 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ==================== STATE ====================
-let state = JSON.parse(localStorage.getItem('pdt-ulis-state') || '{}');
-if (!state.ateliers) state.ateliers = [];
-if (!state.eleves) state.eleves = [];
-if (!state.pdts) state.pdts = [];
-if (!state.suivi) state.suivi = {};
+const SUPABASE_URL = 'https://bsirohrbusprtojodasc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaXJvaHJidXNwcnRvam9kYXNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTc4OTMsImV4cCI6MjA4OTI3Mzg5M30.DMDBAPnbjrhSyfaY6GTbSCSP4XQ-qzJDv5GPtGSOQ3A';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentImageData = null;
+let ateliers = [], eleves = [], pdts = [];
 let selectedStudentId = null;
+let currentImageData = null;
+let activeFilter = 'all';
 
-function saveState() {
-  localStorage.setItem('pdt-ulis-state', JSON.stringify(state));
+const domainColors = {'Mathématiques':'blue','Lecture / Langage':'teal','Motricité fine':'amber','Autonomie':'green','Socio-émotionnel':'purple','Sciences / Découverte':'coral','Arts / Créativité':'purple','Vie pratique':'amber'};
+const avatarColors = ['teal','blue','purple','coral','amber','green'];
+const domainHex = {'Mathématiques':'#378ADD','Lecture / Langage':'#1D9E75','Motricité fine':'#EF9F27','Autonomie':'#639922','Socio-émotionnel':'#7F77DD','Sciences / Découverte':'#D85A30','Arts / Créativité':'#D4537E','Vie pratique':'#BA7517'};
+
+function toast(msg, d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-add-atelier')resetAtelierForm();}
+function domainTag(d){const c=domainColors[d]||'teal';return`<span class="tag tag-${c}">${d}</span>`;}
+
+async function loadAll(){
+  const [a,e,p] = await Promise.all([
+    sb.from('ateliers').select('*').order('created_at',{ascending:false}),
+    sb.from('eleves_pdt').select('*').order('created_at',{ascending:false}),
+    sb.from('plans_travail').select('*').order('created_at',{ascending:false})
+  ]);
+  ateliers = a.data||[];
+  eleves = e.data||[];
+  pdts = p.data||[];
   updateStats();
 }
 
-function updateStats() {
-  const done = state.pdts.reduce((acc, p) => acc + (p.activities || []).filter(a => a.status === 'done').length, 0);
-  document.getElementById('stat-ateliers').textContent = state.ateliers.length;
-  document.getElementById('stat-eleves').textContent = state.eleves.length;
-  document.getElementById('stat-pdts').textContent = state.pdts.length;
-  document.getElementById('stat-done').textContent = done;
-  document.getElementById('badge-ateliers').textContent = state.ateliers.length;
-  document.getElementById('badge-eleves').textContent = state.eleves.length;
+function updateStats(){
+  const done = pdts.reduce((acc,p)=>acc+(p.activities||[]).filter(a=>a.status==='done').length,0);
+  document.getElementById('stat-ateliers').textContent=ateliers.length;
+  document.getElementById('stat-eleves').textContent=eleves.length;
+  document.getElementById('stat-pdts').textContent=pdts.length;
+  document.getElementById('stat-done').textContent=done;
+  document.getElementById('badge-ateliers').textContent=ateliers.length;
+  document.getElementById('badge-eleves').textContent=eleves.length;
 }
 
-// ==================== NAVIGATION ====================
-function showSection(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('section-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
-
-  if (name === 'ateliers') renderAteliers();
-  if (name === 'eleves') renderEleves();
-  if (name === 'generer') renderSelectStudents();
-  if (name === 'suivi') renderSuiviSelect();
+function showSection(name,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='ateliers')renderAteliers();
+  if(name==='eleves')renderEleves();
+  if(name==='generer')renderSelectStudents();
+  if(name==='suivi')renderSuiviSelect();
 }
 
-// ==================== TOAST ====================
-function toast(msg, duration = 3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
+function setFilter(btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter=btn.dataset.domain;
+  renderAteliers();
 }
 
-// ==================== MODALS ====================
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  if (id === 'modal-add-atelier') resetAtelierForm();
+// ---- ATELIERS ----
+function renderAteliers(){
+  const grid=document.getElementById('ateliers-grid');
+  const filtered=activeFilter==='all'?ateliers:ateliers.filter(a=>a.domain===activeFilter);
+  if(!filtered.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎲</div><div>Aucun atelier${activeFilter!=='all'?' dans ce domaine':''}.</div></div>`;return;}
+  grid.innerHTML=filtered.map(a=>`
+    <div class="atelier-card">
+      <div class="atelier-img">${a.image_url?`<img src="${a.image_url}" alt="${a.title}">`:'<span style="font-size:2rem">🎮</span>'}</div>
+      <div class="atelier-body">
+        <div class="atelier-title">${a.title}</div>
+        <div class="atelier-obj">${a.objectif||'Objectif non renseigné'}</div>
+        <div class="atelier-tags">
+          ${domainTag(a.domain)}
+          ${(a.levels||[]).slice(0,2).map(l=>`<span class="tag" style="background:var(--bg);color:var(--text-m);border:1px solid var(--border)">${l}</span>`).join('')}
+          ${a.duree?`<span class="tag" style="background:var(--bg);color:var(--text-m)">⏱ ${a.duree} min</span>`:''}
+        </div>
+        ${a.notes?`<div class="text-xs text-mid mt-1">💡 ${a.notes}</div>`:''}
+        <div class="mt-1"><button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px" onclick="deleteAtelier('${a.id}')">Supprimer</button></div>
+      </div>
+    </div>`).join('');
 }
 
-// ==================== DOMAIN COLOR ====================
-const domainColors = {
-  'Mathématiques': 'blue', 'Lecture / Langage': 'teal', 'Motricité fine': 'amber',
-  'Autonomie': 'green', 'Socio-émotionnel': 'purple', 'Sciences / Découverte': 'coral',
-  'Arts / Créativité': 'pink', 'Vie pratique': 'amber'
-};
-const avatarColors = ['teal', 'blue', 'purple', 'coral', 'amber', 'green'];
-
-function domainTag(domain) {
-  const c = domainColors[domain] || 'teal';
-  return `<span class="tag tag-${c}">${domain}</span>`;
+async function deleteAtelier(id){
+  if(!confirm('Supprimer cet atelier ?'))return;
+  await sb.from('ateliers').delete().eq('id',id);
+  ateliers=ateliers.filter(a=>a.id!==id);
+  updateStats();renderAteliers();toast('Atelier supprimé.');
 }
 
-// ==================== IMAGE UPLOAD ====================
-function handleImageUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    currentImageData = e.target.result;
+// ---- UPLOAD IMAGE ----
+function handleImageUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    currentImageData=e.target.result;
     document.getElementById('upload-preview').classList.remove('hidden');
-    document.getElementById('preview-img').src = currentImageData;
+    document.getElementById('preview-img').src=currentImageData;
     document.getElementById('upload-zone').classList.add('hidden');
     analyzeWithAI(currentImageData);
   };
   reader.readAsDataURL(file);
 }
 
-async function analyzeWithAI(imageData) {
+async function analyzeWithAI(imageData){
   document.getElementById('ai-analyze-status').classList.remove('hidden');
-  document.getElementById('atelier-form').style.opacity = '0.4';
-  document.getElementById('atelier-form').style.pointerEvents = 'none';
-
-  try {
-    const base64 = imageData.split(',')[1];
-    const mediaType = imageData.match(/data:([^;]+)/)[1];
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: { type: "base64", media_type: mediaType, data: base64 }
-            },
-            {
-              type: "text",
-              text: `Tu es expert en pédagogie adaptée et ULIS. Analyse cette photo d'un atelier ou jeu pédagogique. Réponds UNIQUEMENT en JSON valide, sans texte avant ou après, sans backticks :
-{
-  "titre": "Nom court de l'atelier (max 6 mots)",
-  "domaine": "Un seul parmi : Mathématiques, Lecture / Langage, Motricité fine, Autonomie, Socio-émotionnel, Sciences / Découverte, Arts / Créativité, Vie pratique",
-  "objectif": "Objectif pédagogique principal (1-2 phrases)",
-  "niveaux": "Niveaux suggérés ex: CP, CE1",
-  "notes": "Adaptation ou remarque si pertinent (optionnel, sinon chaîne vide)"
-}`
-            }
-          ]
-        }]
-      })
+  document.getElementById('atelier-form').style.opacity='.4';
+  document.getElementById('atelier-form').style.pointerEvents='none';
+  try{
+    const base64=imageData.split(',')[1];
+    const mediaType=imageData.match(/data:([^;]+)/)[1];
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+        {type:'text',text:`Tu es expert en pédagogie adaptée ULIS. Analyse cette photo d'un atelier ou jeu pédagogique. Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
+{"titre":"Nom court (max 6 mots)","domaine":"Un seul parmi : Mathématiques, Lecture / Langage, Motricité fine, Autonomie, Socio-émotionnel, Sciences / Découverte, Arts / Créativité, Vie pratique","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaîne vide)"}`}
+      ]}]})
     });
-
-    const data = await response.json();
-    const text = data.content[0].text.trim();
-    const result = JSON.parse(text);
-
-    document.getElementById('atelier-title').value = result.titre || '';
-    const domainSelect = document.getElementById('atelier-domain');
-    for (let opt of domainSelect.options) {
-      if (opt.value === result.domaine) { domainSelect.value = result.domaine; break; }
-    }
-    document.getElementById('atelier-obj').value = result.objectif || '';
-    document.getElementById('atelier-levels').value = result.niveaux || '';
-    document.getElementById('atelier-notes').value = result.notes || '';
+    const data=await response.json();
+    const result=JSON.parse(data.content[0].text.trim());
+    document.getElementById('atelier-title').value=result.titre||'';
+    const ds=document.getElementById('atelier-domain');
+    for(let o of ds.options)if(o.value===result.domaine){ds.value=result.domaine;break;}
+    document.getElementById('atelier-obj').value=result.objectif||'';
+    document.getElementById('atelier-levels').value=result.niveaux||'';
+    document.getElementById('atelier-notes').value=result.notes||'';
     toast('✨ Analyse IA terminée ! Vérifiez et complétez si besoin.');
-  } catch (e) {
-    toast('Analyse IA indisponible — remplissez manuellement.', 4000);
-    console.error(e);
-  }
-
+  }catch(e){toast('Analyse IA indisponible — remplissez manuellement.',4000);}
   document.getElementById('ai-analyze-status').classList.add('hidden');
-  document.getElementById('atelier-form').style.opacity = '1';
-  document.getElementById('atelier-form').style.pointerEvents = 'auto';
+  document.getElementById('atelier-form').style.opacity='1';
+  document.getElementById('atelier-form').style.pointerEvents='auto';
 }
 
-function resetAtelierForm() {
-  currentImageData = null;
+function resetAtelierForm(){
+  currentImageData=null;
   document.getElementById('upload-zone').classList.remove('hidden');
   document.getElementById('upload-preview').classList.add('hidden');
   document.getElementById('ai-analyze-status').classList.add('hidden');
-  ['atelier-title','atelier-obj','atelier-levels','atelier-notes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('atelier-domain').value = '';
-  document.getElementById('file-input').value = '';
-  document.getElementById('atelier-form').style.opacity = '1';
-  document.getElementById('atelier-form').style.pointerEvents = 'auto';
+  ['atelier-title','atelier-obj','atelier-levels','atelier-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('atelier-domain').value='';
+  document.getElementById('file-input').value='';
+  document.getElementById('atelier-form').style.opacity='1';
+  document.getElementById('atelier-form').style.pointerEvents='auto';
 }
 
-function saveAtelier() {
-  const title = document.getElementById('atelier-title').value.trim();
-  const domain = document.getElementById('atelier-domain').value;
-  if (!title || !domain) { toast('Merci de renseigner le nom et le domaine.'); return; }
+async function saveAtelier(){
+  const title=document.getElementById('atelier-title').value.trim();
+  const domain=document.getElementById('atelier-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le nom et le domaine.');return;}
 
-  const atelier = {
-    id: Date.now().toString(),
-    title,
-    domain,
-    objectif: document.getElementById('atelier-obj').value.trim(),
-    levels: document.getElementById('atelier-levels').value.split(',').map(s => s.trim()).filter(Boolean),
-    duree: parseInt(document.getElementById('atelier-duree').value),
-    notes: document.getElementById('atelier-notes').value.trim(),
-    image: currentImageData
-  };
+  let image_url=null;
+  if(currentImageData){
+    const base64=currentImageData.split(',')[1];
+    const ext=currentImageData.match(/data:image\/([^;]+)/)[1];
+    const fileName=`atelier-${Date.now()}.${ext}`;
+    const blob=await(await fetch(currentImageData)).blob();
+    const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:`image/${ext}`});
+    if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);image_url=url.publicUrl;}
+  }
 
-  state.ateliers.push(atelier);
-  saveState();
-  closeModal('modal-add-atelier');
-  renderAteliers();
+  const row={title,domain,objectif:document.getElementById('atelier-obj').value.trim(),levels:document.getElementById('atelier-levels').value.split(',').map(s=>s.trim()).filter(Boolean),duree:parseInt(document.getElementById('atelier-duree').value),notes:document.getElementById('atelier-notes').value.trim(),image_url};
+  const {data,error}=await sb.from('ateliers').insert([row]).select();
+  if(error){toast('Erreur Supabase : '+error.message,5000);return;}
+  ateliers.unshift(data[0]);
+  updateStats();closeModal('modal-add-atelier');renderAteliers();
   toast('✅ Atelier ajouté à la bibliothèque !');
 }
 
-// ==================== RENDER ATELIERS ====================
-let activeFilter = 'all';
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    activeFilter = this.dataset.domain;
-    renderAteliers();
-  });
-});
-
-function renderAteliers() {
-  const grid = document.getElementById('ateliers-grid');
-  const filtered = activeFilter === 'all' ? state.ateliers : state.ateliers.filter(a => a.domain === activeFilter);
-
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎲</div><div>Aucun atelier${activeFilter !== 'all' ? ' dans ce domaine' : ''}.</div></div>`;
-    return;
-  }
-
-  grid.innerHTML = filtered.map(a => `
-    <div class="atelier-card">
-      <div class="atelier-img">
-        ${a.image ? `<img src="${a.image}" alt="${a.title}">` : `<span style="font-size: 2rem;">🎮</span>`}
+// ---- ÉLÈVES ----
+function renderEleves(){
+  const grid=document.getElementById('eleves-grid');
+  if(!eleves.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👤</div><div>Aucun élève pour l'instant.</div></div>`;return;}
+  grid.innerHTML=eleves.map((e,i)=>{
+    const c=avatarColors[i%avatarColors.length];
+    const nb=pdts.filter(p=>p.eleve_id===e.id).length;
+    return`<div class="card">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="student-avatar" style="background:var(--c-${c}-l);color:var(--c-${c}-d)">${e.nom.substring(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:700;font-size:15px">${e.nom}</div><div class="text-xs text-mid">${e.classe||'Classe non renseignée'}</div></div>
       </div>
-      <div class="atelier-body">
-        <div class="atelier-title">${a.title}</div>
-        <div class="atelier-obj">${a.objectif || 'Objectif non renseigné'}</div>
-        <div class="atelier-tags">
-          ${domainTag(a.domain)}
-          ${a.levels.slice(0,2).map(l => `<span class="tag" style="background: var(--bg); color: var(--text-mid); border: 1px solid var(--border);">${l}</span>`).join('')}
-          ${a.duree ? `<span class="tag" style="background: var(--bg); color: var(--text-mid);">⏱ ${a.duree} min</span>` : ''}
-        </div>
-        ${a.notes ? `<div class="text-xs text-mid mt-1">💡 ${a.notes}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-// ==================== ÉLÈVES ====================
-function saveEleve() {
-  const nom = document.getElementById('eleve-nom').value.trim();
-  if (!nom) { toast('Merci de saisir le prénom de l\'élève.'); return; }
-
-  const eleve = {
-    id: Date.now().toString(),
-    nom,
-    classe: document.getElementById('eleve-classe').value.trim(),
-    difficultes: document.getElementById('eleve-difficultes').value.split(',').map(s => s.trim()).filter(Boolean),
-    forces: document.getElementById('eleve-forces').value.split(',').map(s => s.trim()).filter(Boolean),
-    objectifs: document.getElementById('eleve-objectifs').value.trim(),
-    adaptations: document.getElementById('eleve-adaptations').value.trim(),
-    couleur: avatarColors[state.eleves.length % avatarColors.length]
-  };
-
-  state.eleves.push(eleve);
-  if (!state.suivi[eleve.id]) state.suivi[eleve.id] = {};
-  saveState();
-  closeModal('modal-add-eleve');
-  renderEleves();
-  ['eleve-nom','eleve-classe','eleve-difficultes','eleve-forces','eleve-objectifs','eleve-adaptations'].forEach(id => document.getElementById(id).value = '');
-  toast('✅ Profil élève enregistré !');
-}
-
-function renderEleves() {
-  const grid = document.getElementById('eleves-grid');
-  if (!state.eleves.length) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👤</div><div>Aucun élève pour l'instant.</div></div>`;
-    return;
-  }
-
-  grid.innerHTML = state.eleves.map(e => {
-    const initials = e.nom.substring(0, 2).toUpperCase();
-    const nbPdts = state.pdts.filter(p => p.eleveId === e.id).length;
-    return `
-      <div class="card">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="student-avatar" style="background: var(--c-${e.couleur}-light); color: var(--c-${e.couleur}-dark);">${initials}</div>
-          <div>
-            <div class="student-name">${e.nom}</div>
-            <div class="student-level">${e.classe || 'Classe non renseignée'}</div>
-          </div>
-        </div>
-        ${e.difficultes.length ? `<div class="mb-1">${e.difficultes.map(d => `<span class="tag tag-coral" style="margin: 2px;">${d}</span>`).join('')}</div>` : ''}
-        ${e.forces.length ? `<div class="mb-1">${e.forces.map(f => `<span class="tag tag-green" style="margin: 2px;">${f}</span>`).join('')}</div>` : ''}
-        ${e.objectifs ? `<div class="text-xs text-mid mt-1" style="border-left: 3px solid var(--c-teal); padding-left: 8px;">${e.objectifs.substring(0, 120)}${e.objectifs.length > 120 ? '…' : ''}</div>` : ''}
-        <div class="flex gap-1 mt-2 items-center">
-          <span class="text-xs text-mid">${nbPdts} PDT</span>
-          <button class="btn btn-sm btn-secondary" style="margin-left: auto;" onclick="deleteEleve('${e.id}')">Supprimer</button>
-        </div>
-      </div>
-    `;
+      ${(e.difficultes||[]).length?`<div class="mb-1">${e.difficultes.map(d=>`<span class="tag tag-coral" style="margin:2px">${d}</span>`).join('')}</div>`:''}
+      ${(e.forces||[]).length?`<div class="mb-1">${e.forces.map(f=>`<span class="tag tag-green" style="margin:2px">${f}</span>`).join('')}</div>`:''}
+      ${e.objectifs?`<div class="text-xs text-mid mt-1" style="border-left:3px solid var(--c-teal);padding-left:8px">${e.objectifs.substring(0,120)}${e.objectifs.length>120?'…':''}</div>`:''}
+      <div class="flex gap-1 mt-2 items-center"><span class="text-xs text-mid">${nb} PDT</span><button class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="deleteEleve('${e.id}')">Supprimer</button></div>
+    </div>`;
   }).join('');
 }
 
-function deleteEleve(id) {
-  if (!confirm('Supprimer cet élève ?')) return;
-  state.eleves = state.eleves.filter(e => e.id !== id);
-  saveState();
-  renderEleves();
-  toast('Élève supprimé.');
+async function saveEleve(){
+  const nom=document.getElementById('eleve-nom').value.trim();
+  if(!nom){toast("Merci de saisir le prénom.");return;}
+  const row={nom,classe:document.getElementById('eleve-classe').value.trim(),difficultes:document.getElementById('eleve-difficultes').value.split(',').map(s=>s.trim()).filter(Boolean),forces:document.getElementById('eleve-forces').value.split(',').map(s=>s.trim()).filter(Boolean),objectifs:document.getElementById('eleve-objectifs').value.trim(),adaptations:document.getElementById('eleve-adaptations').value.trim()};
+  const {data,error}=await sb.from('eleves_pdt').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  eleves.unshift(data[0]);
+  updateStats();closeModal('modal-add-eleve');renderEleves();
+  ['eleve-nom','eleve-classe','eleve-difficultes','eleve-forces','eleve-objectifs','eleve-adaptations'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Profil élève enregistré !');
 }
 
-// ==================== GÉNÉRER PDT ====================
-function renderSelectStudents() {
-  const list = document.getElementById('select-student-list');
-  if (!state.eleves.length) {
-    list.innerHTML = `<div class="text-sm text-mid">Aucun élève — <a href="#" onclick="showSection('eleves'); openModal('modal-add-eleve'); return false;" style="color: var(--c-teal);">ajoutez d'abord un élève</a></div>`;
-    return;
-  }
-  list.innerHTML = `<div class="grid-2">` + state.eleves.map(e => `
-    <div class="student-card${selectedStudentId === e.id ? ' selected' : ''}" onclick="selectStudent('${e.id}', this)">
+async function deleteEleve(id){
+  if(!confirm('Supprimer cet élève et tous ses PDT ?'))return;
+  await sb.from('eleves_pdt').delete().eq('id',id);
+  eleves=eleves.filter(e=>e.id!==id);pdts=pdts.filter(p=>p.eleve_id!==id);
+  updateStats();renderEleves();toast('Élève supprimé.');
+}
+
+// ---- GÉNÉRER PDT ----
+function renderSelectStudents(){
+  const list=document.getElementById('select-student-list');
+  if(!eleves.length){list.innerHTML=`<div class="text-sm text-mid">Aucun élève — <a href="#" onclick="showSection('eleves',null);openModal('modal-add-eleve');return false;" style="color:var(--c-teal)">ajoutez d'abord un élève</a></div>`;return;}
+  list.innerHTML=`<div class="grid-2">`+eleves.map((e,i)=>{
+    const c=avatarColors[i%avatarColors.length];
+    return`<div class="student-card${selectedStudentId===e.id?' selected':''}" onclick="selectStudent('${e.id}',this)">
       <div class="flex items-center gap-2">
-        <div class="student-avatar" style="width: 36px; height: 36px; font-size: 13px; background: var(--c-${e.couleur}-light); color: var(--c-${e.couleur}-dark);">${e.nom.substring(0,2).toUpperCase()}</div>
-        <div>
-          <div style="font-weight: 700; font-size: 14px;">${e.nom}</div>
-          <div class="text-xs text-mid">${e.classe || ''}</div>
-        </div>
+        <div class="student-avatar" style="width:36px;height:36px;font-size:13px;background:var(--c-${c}-l);color:var(--c-${c}-d)">${e.nom.substring(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:700;font-size:14px">${e.nom}</div><div class="text-xs text-mid">${e.classe||''}</div></div>
       </div>
-    </div>
-  `).join('') + '</div>';
+    </div>`;
+  }).join('')+'</div>';
 }
 
-function selectStudent(id, el) {
-  selectedStudentId = id;
-  document.querySelectorAll('.student-card').forEach(c => c.classList.remove('selected'));
+function selectStudent(id,el){
+  selectedStudentId=id;
+  document.querySelectorAll('.student-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-async function generatePDT() {
-  if (!selectedStudentId) { toast('Choisissez un élève d\'abord.'); return; }
-  const eleve = state.eleves.find(e => e.id === selectedStudentId);
-  if (!eleve) return;
+async function generatePDT(){
+  if(!selectedStudentId){toast('Choisissez un élève d\'abord.');return;}
+  if(!ateliers.length){toast('Ajoutez des ateliers à la bibliothèque d\'abord.');return;}
+  const eleve=eleves.find(e=>e.id===selectedStudentId);
+  const semaine=document.getElementById('pdt-semaine').value.trim()||'Semaine en cours';
+  const nbAct=parseInt(document.getElementById('pdt-nb').value)||8;
+  const consignes=document.getElementById('pdt-consignes').value.trim();
+  const resultDiv=document.getElementById('pdt-result');
+  resultDiv.innerHTML=`<div class="card" style="height:100%"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA prépare le plan de ${eleve.nom}...</div></div></div>`;
 
-  if (!state.ateliers.length) { toast('Ajoutez des ateliers à la bibliothèque d\'abord.'); return; }
+  const ateliersList=ateliers.map(a=>`- [${a.id}] "${a.title}" (${a.domain}) — Objectif: ${a.objectif||'non renseigné'} — Niveaux: ${(a.levels||[]).join(', ')||'?'} — ${a.duree||20} min`).join('\n');
+  const prevPdts=pdts.filter(p=>p.eleve_id===selectedStudentId).slice(-2);
+  const prevContext=prevPdts.length?'\nPDT précédents :\n'+prevPdts.map(p=>`Semaine ${p.semaine}: ${(p.activities||[]).map(a=>`${a.titre} (${a.status==='done'?'réussi':a.status==='partial'?'partiel':'non fait'})`).join(', ')}`).join('\n'):'';
 
-  const semaine = document.getElementById('pdt-semaine').value.trim() || 'Semaine en cours';
-  const nbAct = parseInt(document.getElementById('pdt-nb').value) || 8;
-  const consignes = document.getElementById('pdt-consignes').value.trim();
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté.
 
-  const resultDiv = document.getElementById('pdt-result');
-  resultDiv.innerHTML = `<div class="card" style="height: 100%;"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA prépare le plan de travail de ${eleve.nom}...</div></div></div>`;
-
-  const ateliersList = state.ateliers.map(a =>
-    `- [${a.id}] "${a.title}" (${a.domain}) — Objectif: ${a.objectif || 'non renseigné'} — Niveaux: ${a.levels.join(', ') || '?'} — ${a.duree || 20} min`
-  ).join('\n');
-
-  const prevPdts = state.pdts.filter(p => p.eleveId === selectedStudentId).slice(-2);
-  const prevContext = prevPdts.length ? '\nPDT précédents :\n' + prevPdts.map(p =>
-    `Semaine ${p.semaine}: ${p.activities.map(a => `${a.title} (${a.status === 'done' ? 'réussi' : a.status === 'partial' ? 'partiel' : 'non fait'})`).join(', ')}`
-  ).join('\n') : '';
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: `Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté pour cet élève.
-
-PROFIL ÉLÈVE : ${eleve.nom} (${eleve.classe})
-Difficultés : ${eleve.difficultes.join(', ') || 'non renseignées'}
-Points forts : ${eleve.forces.join(', ') || 'non renseignés'}
-Objectifs PI : ${eleve.objectifs || 'non renseignés'}
-Adaptations : ${eleve.adaptations || 'non renseignées'}
+PROFIL : ${eleve.nom} (${eleve.classe||''})
+Difficultés : ${(eleve.difficultes||[]).join(', ')||'non renseignées'}
+Points forts : ${(eleve.forces||[]).join(', ')||'non renseignés'}
+Objectifs PI : ${eleve.objectifs||'non renseignés'}
+Adaptations : ${eleve.adaptations||'non renseignées'}
 ${prevContext}
 
 ATELIERS DISPONIBLES :
@@ -876,209 +611,318 @@ ${ateliersList}
 
 CONSIGNES : Sélectionne exactement ${nbAct} ateliers adaptés. ${consignes}
 
-Réponds UNIQUEMENT en JSON valide, sans texte avant/après ni backticks :
-{
-  "commentaire": "Courte introduction personnalisée (2 phrases max)",
-  "activites": [
-    {
-      "atelierId": "id de l'atelier",
-      "titre": "titre de l'atelier",
-      "domaine": "domaine",
-      "pourquoi": "Pourquoi cet atelier est adapté à cet élève (1 phrase)",
-      "adaptation": "Adaptation spécifique si nécessaire (ou chaîne vide)",
-      "ordre": 1
-    }
-  ]
-}`
-        }]
-      })
+Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
+{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"atelierId":"id","titre":"titre","domaine":"domaine","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaîne vide","ordre":1}]}`}]})
     });
-
-    const data = await response.json();
-    const text = data.content[0].text.trim();
-    const result = JSON.parse(text);
-
-    const pdt = {
-      id: Date.now().toString(),
-      eleveId: selectedStudentId,
-      eleveNom: eleve.nom,
-      semaine,
-      createdAt: new Date().toISOString(),
-      commentaire: result.commentaire,
-      activities: result.activites.map(a => ({
-        ...a,
-        status: 'todo'
-      }))
-    };
-
-    state.pdts.push(pdt);
-    saveState();
-    renderPDTResult(pdt);
-    toast(`✅ PDT de ${eleve.nom} généré !`);
-  } catch(e) {
-    resultDiv.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">⚠️</div><div>Erreur lors de la génération IA. Vérifiez votre connexion.</div></div></div>`;
+    const data=await response.json();
+    const result=JSON.parse(data.content[0].text.trim());
+    const pdt={eleve_id:selectedStudentId,eleve_nom:eleve.nom,semaine,commentaire:result.commentaire,activities:result.activites.map(a=>({...a,status:'todo'}))};
+    const {data:saved,error}=await sb.from('plans_travail').insert([pdt]).select();
+    if(error){toast('Erreur sauvegarde : '+error.message,5000);return;}
+    pdts.unshift(saved[0]);
+    updateStats();
+    renderPDTResult(saved[0]);
+    toast(`✅ PDT de ${eleve.nom} généré et sauvegardé !`);
+  }catch(e){
+    resultDiv.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">⚠️</div><div>Erreur lors de la génération IA.</div></div></div>`;
     console.error(e);
   }
 }
 
-function renderPDTResult(pdt) {
-  const domainNums = { 'Mathématiques': '#378ADD', 'Lecture / Langage': '#1D9E75', 'Motricité fine': '#EF9F27', 'Autonomie': '#639922', 'Socio-émotionnel': '#7F77DD', 'Sciences / Découverte': '#D85A30', 'Arts / Créativité': '#D4537E', 'Vie pratique': '#BA7517' };
-
-  document.getElementById('pdt-result').innerHTML = `
+function renderPDTResult(pdt){
+  document.getElementById('pdt-result').innerHTML=`
     <div class="card card-lg">
       <div class="flex justify-between items-center mb-2">
-        <div>
-          <div class="font-bold" style="font-size: 1rem;">Plan de travail — ${pdt.eleveNom}</div>
-          <div class="text-sm text-mid">📅 ${pdt.semaine}</div>
-        </div>
+        <div><div class="font-bold" style="font-size:1rem">PDT — ${pdt.eleve_nom}</div><div class="text-sm text-mid">📅 ${pdt.semaine}</div></div>
         <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimer</button>
       </div>
-
-      ${pdt.commentaire ? `<div style="background: var(--c-teal-light); border-left: 4px solid var(--c-teal); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 14px; color: var(--c-teal-dark);">${pdt.commentaire}</div>` : ''}
-
-      ${pdt.activities.map((a, i) => {
-        const color = domainNums[a.domaine] || '#1D9E75';
-        return `
-          <div class="pdt-activity">
-            <div class="pdt-num" style="background: ${color}22; color: ${color};">${a.ordre || i+1}</div>
-            <div class="pdt-content">
-              <div class="pdt-title">${a.titre}</div>
-              <div class="pdt-obj">${a.pourquoi}</div>
-              ${a.adaptation ? `<div class="text-xs mt-1" style="color: var(--c-amber-dark); background: var(--c-amber-light); padding: 3px 8px; border-radius: 4px; display: inline-block;">💡 ${a.adaptation}</div>` : ''}
-            </div>
-            <div class="pdt-status">
-              <select class="btn btn-sm btn-secondary" onchange="updateActivityStatus('${pdt.id}', ${i}, this.value)" style="padding: 4px 8px; font-size: 12px;">
-                <option value="todo"${a.status==='todo'?' selected':''}>À faire</option>
-                <option value="doing"${a.status==='doing'?' selected':''}>En cours</option>
-                <option value="partial"${a.status==='partial'?' selected':''}>Partiel</option>
-                <option value="done"${a.status==='done'?' selected':''}>✓ Réussi</option>
-              </select>
-            </div>
+      ${pdt.commentaire?`<div style="background:var(--c-teal-l);border-left:4px solid var(--c-teal);padding:.75rem 1rem;border-radius:var(--rs);margin-bottom:1rem;font-size:14px;color:var(--c-teal-d)">${pdt.commentaire}</div>`:''}
+      ${(pdt.activities||[]).map((a,i)=>{
+        const color=domainHex[a.domaine]||'#1D9E75';
+        return`<div class="pdt-activity">
+          <div class="pdt-num" style="background:${color}22;color:${color}">${a.ordre||i+1}</div>
+          <div class="pdt-content">
+            <div class="pdt-title">${a.titre}</div>
+            <div class="pdt-obj">${a.pourquoi}</div>
+            ${a.adaptation?`<div class="text-xs mt-1" style="color:var(--c-amber-d);background:var(--c-amber-l);padding:3px 8px;border-radius:4px;display:inline-block">💡 ${a.adaptation}</div>`:''}
           </div>
-        `;
+          <div style="margin-left:auto;flex-shrink:0">
+            <select class="btn btn-sm btn-secondary" onchange="updateActivityStatus('${pdt.id}',${i},this.value)" style="padding:4px 8px;font-size:12px">
+              <option value="todo"${a.status==='todo'?' selected':''}>À faire</option>
+              <option value="doing"${a.status==='doing'?' selected':''}>En cours</option>
+              <option value="partial"${a.status==='partial'?' selected':''}>Partiel</option>
+              <option value="done"${a.status==='done'?' selected':''}>✓ Réussi</option>
+            </select>
+          </div>
+        </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
-function updateActivityStatus(pdtId, actIdx, status) {
-  const pdt = state.pdts.find(p => p.id === pdtId);
-  if (!pdt) return;
-  pdt.activities[actIdx].status = status;
+async function updateActivityStatus(pdtId,actIdx,status){
+  const pdt=pdts.find(p=>p.id===pdtId);if(!pdt)return;
+  pdt.activities[actIdx].status=status;
+  await sb.from('plans_travail').update({activities:pdt.activities}).eq('id',pdtId);
 
-  // Update suivi
-  const act = pdt.activities[actIdx];
-  if (!state.suivi[pdt.eleveId]) state.suivi[pdt.eleveId] = {};
-  if (!state.suivi[pdt.eleveId][act.domaine]) state.suivi[pdt.eleveId][act.domaine] = {};
-  const compKey = act.titre;
-  if (status === 'done') state.suivi[pdt.eleveId][act.domaine][compKey] = 3;
-  else if (status === 'partial') state.suivi[pdt.eleveId][act.domaine][compKey] = Math.max(2, state.suivi[pdt.eleveId][act.domaine][compKey] || 0);
-  else if (status === 'doing') state.suivi[pdt.eleveId][act.domaine][compKey] = Math.max(1, state.suivi[pdt.eleveId][act.domaine][compKey] || 0);
-
-  saveState();
-}
-
-// ==================== SUIVI ====================
-function renderSuiviSelect() {
-  const sel = document.getElementById('suivi-eleve-select');
-  sel.innerHTML = '<option value="">— Choisir —</option>' +
-    state.eleves.map(e => `<option value="${e.id}">${e.nom}</option>`).join('');
-}
-
-function renderSuivi() {
-  const id = document.getElementById('suivi-eleve-select').value;
-  const content = document.getElementById('suivi-content');
-  if (!id) {
-    content.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève pour voir son suivi</div></div>`;
-    return;
+  // suivi compétences
+  const act=pdt.activities[actIdx];
+  const niveau=status==='done'?3:status==='partial'?2:status==='doing'?1:0;
+  const {data:existing}=await sb.from('suivi_competences').select('id,niveau').eq('eleve_id',pdt.eleve_id).eq('activite_titre',act.titre).single();
+  if(existing){
+    if(niveau>existing.niveau)await sb.from('suivi_competences').update({niveau,updated_at:new Date().toISOString()}).eq('id',existing.id);
+  }else{
+    await sb.from('suivi_competences').insert([{eleve_id:pdt.eleve_id,domaine:act.domaine,activite_titre:act.titre,niveau}]);
   }
+  updateStats();
+}
 
-  const eleve = state.eleves.find(e => e.id === id);
-  const suiviEleve = state.suivi[id] || {};
-  const pdtsEleve = state.pdts.filter(p => p.eleveId === id);
+// ---- SUIVI ----
+function renderSuiviSelect(){
+  const sel=document.getElementById('suivi-eleve-select');
+  sel.innerHTML='<option value="">— Choisir —</option>'+eleves.map(e=>`<option value="${e.id}">${e.nom}</option>`).join('');
+}
 
-  if (!pdtsEleve.length) {
-    content.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div>Aucun PDT généré pour ${eleve.nom} pour l'instant.</div></div>`;
-    return;
-  }
+async function renderSuivi(){
+  const id=document.getElementById('suivi-eleve-select').value;
+  const content=document.getElementById('suivi-content');
+  if(!id){content.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève</div></div>`;return;}
+  const eleve=eleves.find(e=>e.id===id);
+  const {data:suivi}=await sb.from('suivi_competences').select('*').eq('eleve_id',id);
+  const pdtsEleve=pdts.filter(p=>p.eleve_id===id);
+  if(!pdtsEleve.length){content.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div>Aucun PDT généré pour ${eleve.nom}.</div></div>`;return;}
 
-  // Build competences matrix
-  const domains = [...new Set(pdtsEleve.flatMap(p => p.activities.map(a => a.domaine)))];
+  const domains=[...new Set((suivi||[]).map(s=>s.domaine))];
+  const bgColors=['white','var(--c-amber-l)','var(--c-blue-l)','var(--c-teal-l)'];
+  const borderColors=['var(--border)','var(--c-amber)','var(--c-blue-m)','var(--c-teal)'];
 
-  content.innerHTML = `
+  content.innerHTML=`
     <div class="card card-lg mb-2">
-      <div class="font-bold mb-1" style="font-size: 0.95rem;">Synthèse — ${eleve.nom}</div>
-      <div class="text-sm text-mid mb-2">${pdtsEleve.length} PDT · ${pdtsEleve.reduce((a,p)=>a+p.activities.filter(x=>x.status==='done').length,0)} activités réussies</div>
-      
-      ${domains.map(domain => {
-        const acts = pdtsEleve.flatMap(p => p.activities.filter(a => a.domaine === domain));
-        const uniq = {};
-        acts.forEach(a => {
-          if (!uniq[a.titre] || a.status === 'done') uniq[a.titre] = a.status;
-        });
-        const items = Object.entries(uniq);
-        return `
-          <div class="mb-2">
-            <div style="font-weight: 700; font-size: 13px; color: var(--text-mid); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">${domain}</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-              ${items.map(([titre, status]) => {
-                const lvl = status === 'done' ? 3 : status === 'partial' ? 2 : status === 'doing' ? 1 : 0;
-                const bgColors = ['var(--card)', 'var(--c-amber-light)', 'var(--c-blue-light)', 'var(--c-teal-light)'];
-                const borderColors = ['var(--border)', 'var(--c-amber)', 'var(--c-blue-mid)', 'var(--c-teal)'];
-                return `<div style="padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: ${bgColors[lvl]}; border: 1px solid ${borderColors[lvl]};">
-                  ${['○','◑','◑','✓'][lvl]} ${titre}
-                </div>`;
-              }).join('')}
-            </div>
+      <div class="font-bold mb-1" style="font-size:.95rem">Synthèse — ${eleve.nom}</div>
+      <div class="text-sm text-mid mb-2">${pdtsEleve.length} PDT · ${pdtsEleve.reduce((a,p)=>a+(p.activities||[]).filter(x=>x.status==='done').length,0)} activités réussies</div>
+      ${domains.map(domain=>{
+        const items=(suivi||[]).filter(s=>s.domaine===domain);
+        return`<div class="mb-2">
+          <div style="font-weight:700;font-size:13px;color:var(--text-m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">${domain}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${items.map(s=>`<div style="padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${bgColors[s.niveau]};border:1px solid ${borderColors[s.niveau]}">
+              ${['○','◑','◑','✓'][s.niveau]} ${s.activite_titre}
+            </div>`).join('')}
           </div>
-        `;
+        </div>`;
       }).join('')}
     </div>
-
     <div class="card card-lg">
-      <div class="font-bold mb-2" style="font-size: 0.95rem;">Historique des PDT</div>
-      ${pdtsEleve.slice().reverse().map(pdt => {
-        const done = pdt.activities.filter(a => a.status === 'done').length;
-        const total = pdt.activities.length;
-        const pct = total ? Math.round(done / total * 100) : 0;
-        return `
-          <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 8px;">
-            <div class="flex justify-between items-center mb-1">
-              <div style="font-weight: 700; font-size: 14px;">📅 ${pdt.semaine}</div>
-              <div class="text-sm" style="color: ${pct >= 80 ? 'var(--c-teal-dark)' : pct >= 50 ? 'var(--c-amber-dark)' : 'var(--text-mid)'}; font-weight: 700;">${done}/${total} (${pct}%)</div>
-            </div>
-            <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
-              <div style="height: 100%; width: ${pct}%; background: ${pct >= 80 ? 'var(--c-teal)' : pct >= 50 ? 'var(--c-amber)' : 'var(--border-strong)'}; border-radius: 3px; transition: width 0.3s;"></div>
-            </div>
+      <div class="font-bold mb-2" style="font-size:.95rem">Historique des PDT</div>
+      ${pdtsEleve.slice().reverse().map(pdt=>{
+        const done=(pdt.activities||[]).filter(a=>a.status==='done').length;
+        const total=(pdt.activities||[]).length;
+        const pct=total?Math.round(done/total*100):0;
+        return`<div style="border:1px solid var(--border);border-radius:var(--rs);padding:.85rem;margin-bottom:8px">
+          <div class="flex justify-between items-center mb-1">
+            <div style="font-weight:700;font-size:14px">📅 ${pdt.semaine}</div>
+            <div class="text-sm" style="color:${pct>=80?'var(--c-teal-d)':pct>=50?'var(--c-amber-d)':'var(--text-m)'};font-weight:700">${done}/${total} (${pct}%)</div>
           </div>
-        `;
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--border-s)'};border-radius:3px"></div>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1">
+            ${(pdt.activities||[]).map(a=>`<span class="text-xs" style="padding:2px 8px;border-radius:10px;background:${a.status==='done'?'var(--c-teal-l)':a.status==='partial'?'var(--c-blue-l)':a.status==='doing'?'var(--c-amber-l)':'var(--bg)'};color:${a.status==='done'?'var(--c-teal-d)':a.status==='partial'?'var(--c-blue-d)':a.status==='doing'?'var(--c-amber-d)':'var(--text-l)'}">${a.titre}</span>`).join('')}
+          </div>
+        </div>`;
       }).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
-// ==================== DRAG UPLOAD ====================
-const uploadZone = document.getElementById('upload-zone');
-if (uploadZone) {
-  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.classList.remove('drag');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const input = document.getElementById('file-input');
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      input.files = dt.files;
-      handleImageUpload(input);
+// ---- IMPORT PI ----
+async function handlePIUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  document.getElementById('pi-analyze-status').classList.remove('hidden');
+  document.getElementById('pi-upload-zone').style.opacity = '.5';
+  document.getElementById('pi-upload-zone').style.pointerEvents = 'none';
+
+  try {
+    let messageContent = [];
+    if (file.type === 'application/pdf') {
+      const base64 = await fileToBase64(file);
+      messageContent = [
+        {type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}},
+        {type:'text', text: PIPrompt()}
+      ];
+    } else {
+      const base64 = await fileToBase64(file);
+      const mediaType = file.type;
+      messageContent = [
+        {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
+        {type:'text', text: PIPrompt()}
+      ];
     }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user', content:messageContent}]})
+    });
+    const data = await response.json();
+    const result = JSON.parse(data.content[0].text.trim());
+
+    if (result.prenom) document.getElementById('eleve-nom').value = result.prenom;
+    if (result.classe) document.getElementById('eleve-classe').value = result.classe;
+    if (result.difficultes) document.getElementById('eleve-difficultes').value = result.difficultes;
+    if (result.forces) document.getElementById('eleve-forces').value = result.forces;
+    if (result.objectifs) document.getElementById('eleve-objectifs').value = result.objectifs;
+    if (result.adaptations) document.getElementById('eleve-adaptations').value = result.adaptations;
+    toast('✨ PI analysé ! Vérifiez et complétez les informations.');
+  } catch(e) {
+    toast('Analyse PI indisponible — remplissez manuellement.', 4000);
+    console.error(e);
+  }
+  document.getElementById('pi-analyze-status').classList.add('hidden');
+  document.getElementById('pi-upload-zone').style.opacity = '1';
+  document.getElementById('pi-upload-zone').style.pointerEvents = 'auto';
+}
+
+function PIPrompt() {
+  return `Tu es expert en éducation spécialisée ULIS. Lis ce document PI (Projet Individualisé) et extrais les informations clés. Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
+{"prenom":"Prénom de l'élève","classe":"Classe de rattachement","difficultes":"Liste des difficultés séparées par des virgules","forces":"Points forts séparés par des virgules","objectifs":"Résumé des objectifs prioritaires du PI en 2-4 phrases","adaptations":"Adaptations et aménagements nécessaires en 1-2 phrases"}
+Si une information est absente du document, mets une chaîne vide pour ce champ.`;
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('Lecture échouée'));
+    r.readAsDataURL(file);
   });
 }
 
-// ==================== INIT ====================
-updateStats();
-renderAteliers();
+// ---- IMPORT LOT ATELIERS ----
+let batchQueue = [];
+
+async function handleBatchUpload(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+
+  batchQueue = files.map(f => ({file:f, status:'pending', data:null}));
+  document.getElementById('batch-step-1').classList.add('hidden');
+  document.getElementById('batch-step-2').classList.remove('hidden');
+
+  const total = files.length;
+  let done = 0;
+  document.getElementById('batch-progress-label').textContent = `0 / ${total} analysés...`;
+
+  for (let i = 0; i < batchQueue.length; i++) {
+    const item = batchQueue[i];
+    renderBatchItem(i, 'analyzing');
+    try {
+      const base64 = await fileToBase64(item.file);
+      const mediaType = item.file.type;
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
+          {type:'text', text:`Tu es expert en pédagogie ULIS. Analyse cette photo d'atelier. UNIQUEMENT en JSON valide sans backticks :
+{"titre":"Nom court (max 6 mots)","domaine":"Un seul parmi : Mathématiques, Lecture / Langage, Motricité fine, Autonomie, Socio-émotionnel, Sciences / Découverte, Arts / Créativité, Vie pratique","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
+        ]}]})
+      });
+      const data = await response.json();
+      const result = JSON.parse(data.content[0].text.trim());
+      item.data = result;
+      item.imageData = 'data:' + mediaType + ';base64,' + base64;
+      item.status = 'done';
+    } catch(e) {
+      item.status = 'error';
+    }
+    done++;
+    const pct = Math.round(done / total * 100);
+    document.getElementById('batch-progress-bar').style.width = pct + '%';
+    document.getElementById('batch-progress-label').textContent = `${done} / ${total} analysés`;
+    renderBatchItem(i, item.status);
+  }
+
+  document.getElementById('batch-progress-label').textContent = `✅ ${total} ateliers analysés — vérifiez et corrigez si besoin`;
+  document.getElementById('batch-save-btn').style.display = 'inline-flex';
+}
+
+function renderBatchItem(i, status) {
+  const item = batchQueue[i];
+  const container = document.getElementById('batch-results');
+  const existing = document.getElementById('batch-item-' + i);
+
+  const html = `<div id="batch-item-${i}" style="background:var(--card);border:1px solid ${status==='error'?'var(--c-coral)':'var(--border)'};border-radius:var(--rs);overflow:hidden">
+    <div style="display:flex;gap:0">
+      ${item.imageData ? `<img src="${item.imageData}" style="width:80px;height:80px;object-fit:cover;flex-shrink:0">` : `<div style="width:80px;height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.5rem">${status==='analyzing'?'<div class="spinner" style="width:20px;height:20px;border-width:2px"></div>':'⚠️'}</div>`}
+      <div style="padding:.6rem .75rem;flex:1;min-width:0">
+        ${status==='analyzing' ? `<div class="text-sm text-mid">Analyse en cours...</div>` :
+          status==='error' ? `<div style="color:var(--c-coral-d);font-size:13px">Erreur d'analyse</div>` :
+          `<input type="text" value="${item.data.titre||''}" onchange="batchQueue[${i}].data.titre=this.value" style="font-weight:700;font-size:13px;padding:3px 6px;margin-bottom:4px;width:100%">
+          <select onchange="batchQueue[${i}].data.domaine=this.value" style="font-size:12px;padding:3px 6px;width:100%">
+            ${['Mathématiques','Lecture / Langage','Motricité fine','Autonomie','Socio-émotionnel','Sciences / Découverte','Arts / Créativité','Vie pratique'].map(d=>`<option${item.data.domaine===d?' selected':''}>${d}</option>`).join('')}
+          </select>
+          <div style="font-size:11px;color:var(--text-m);margin-top:4px">${item.data.objectif||''}</div>`
+        }
+      </div>
+    </div>
+  </div>`;
+
+  if (existing) { existing.outerHTML = html; }
+  else { container.insertAdjacentHTML('beforeend', html); }
+}
+
+async function saveBatchAteliers() {
+  const btn = document.getElementById('batch-save-btn');
+  btn.textContent = 'Enregistrement...'; btn.disabled = true;
+  const toSave = batchQueue.filter(item => item.status === 'done' && item.data);
+  let saved = 0;
+
+  for (const item of toSave) {
+    try {
+      let image_url = null;
+      if (item.imageData) {
+        const blob = await (await fetch(item.imageData)).blob();
+        const ext = item.file.type.split('/')[1];
+        const fileName = `atelier-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType: item.file.type});
+        if (up) { const {data:url} = sb.storage.from('ateliers-photos').getPublicUrl(fileName); image_url = url.publicUrl; }
+      }
+      const row = {title:item.data.titre, domain:item.data.domaine, objectif:item.data.objectif, levels:(item.data.niveaux||'').split(',').map(s=>s.trim()).filter(Boolean), duree:item.data.duree||20, notes:item.data.notes||'', image_url};
+      const {data} = await sb.from('ateliers').insert([row]).select();
+      if (data) { ateliers.unshift(data[0]); saved++; }
+    } catch(e) { console.error(e); }
+  }
+
+  updateStats();
+  closeModal('modal-batch-ateliers');
+  renderAteliers();
+  toast(`✅ ${saved} ateliers enregistrés dans la bibliothèque !`);
+
+  // reset
+  batchQueue = [];
+  document.getElementById('batch-step-1').classList.remove('hidden');
+  document.getElementById('batch-step-2').classList.add('hidden');
+  document.getElementById('batch-results').innerHTML = '';
+  document.getElementById('batch-progress-bar').style.width = '0%';
+  document.getElementById('batch-file-input').value = '';
+  btn.textContent = '✅ Tout enregistrer'; btn.disabled = false;
+}
+
+// ---- DRAG & DROP ----
+const uz=document.getElementById('upload-zone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{
+  e.preventDefault();uz.classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/')){
+    const input=document.getElementById('file-input');
+    const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+    handleImageUpload(input);
+  }
+});
+
+// ---- INIT ----
+loadAll().then(()=>{
+  renderAteliers();
+});
 </script>
 </body>
 </html>
