@@ -756,8 +756,8 @@ async function analyzeWithAI(imageData){
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
         {type:'text',text:`Tu es expert en pédagogie adaptée ULIS. Analyse cette photo d'un atelier ou jeu pédagogique. ${contexte}
-Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
-{"titre":"Nom court (max 6 mots)","domaine":"${DOMAINE_LISTE_IA}","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaîne vide)"}`}
+Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks, en choisissant le domaine parmi cette liste exacte : ${DOMAINE_LISTE_IA}.
+Format : {"titre":"Nom court (max 6 mots)","domaine":"domaine exact de la liste","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaine vide)"}`}
       ]}]})
     });
     const data=await response.json();
@@ -1174,8 +1174,8 @@ async function handleBatchUpload(input) {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
-          {type:'text', text:`Tu es expert en pédagogie ULIS. Analyse cette photo d'atelier. UNIQUEMENT en JSON valide sans backticks :
-{"titre":"Nom court (max 6 mots)","domaine":"${DOMAINE_LISTE_IA}","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
+          {type:'text', text:`Tu es expert en pédagogie ULIS. Analyse cette photo d'atelier. Choisis le domaine parmi : ${DOMAINE_LISTE_IA}. Réponds UNIQUEMENT en JSON valide sans backticks :
+{"titre":"Nom court (max 6 mots)","domaine":"domaine exact de la liste","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
         ]}]})
       });
       const data = await response.json();
