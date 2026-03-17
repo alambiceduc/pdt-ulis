@@ -737,9 +737,29 @@ function handleImageUpload(input){
     document.getElementById('upload-zone').classList.add('hidden');
     img.src = currentImageData;
     setupImagePan(img, container);
-    analyzeWithAI(currentImageData);
+    // Compresse avant d'envoyer à l'IA (800px, qualité 0.6 → ~80-120 KB)
+    compressImage(currentImageData, 800, 0.6).then(compressed => analyzeWithAI(compressed));
   };
   reader.readAsDataURL(file);
+}
+
+// Redimensionne et compresse une image (max largeur px, qualité 0-1)
+function compressImage(dataUrl, maxSize, quality){
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if(w > maxSize || h > maxSize){
+        if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
 }
 
 async function analyzeWithAI(imageData){
@@ -803,12 +823,12 @@ async function saveAtelier(){
 
   let image_url=null;
   if(currentImageData){
-    // Capture la zone visible après recadrage
+    // Capture la zone recadrée puis compresse à 800px max avant upload Supabase
     const container = document.getElementById('preview-container');
     const img = document.getElementById('preview-img');
     const canvas = document.createElement('canvas');
     const cw = container.offsetWidth, ch = container.offsetHeight;
-    canvas.width = cw * 2; canvas.height = ch * 2; // x2 pour la qualité
+    canvas.width = cw * 2; canvas.height = ch * 2;
     const ctx = canvas.getContext('2d');
     const imgEl = new Image(); imgEl.src = currentImageData;
     await new Promise(r => { imgEl.onload = r; if (imgEl.complete) r(); });
@@ -818,7 +838,8 @@ async function saveAtelier(){
       cw / scale, ch / scale,
       0, 0, canvas.width, canvas.height
     );
-    const croppedData = canvas.toDataURL('image/jpeg', 0.85);
+    // Compresse le recadrage à 800px, qualité 0.75 (~100-150 KB)
+    const croppedData = await compressImage(canvas.toDataURL('image/jpeg', 1), 800, 0.75);
     const blob = await (await fetch(croppedData)).blob();
     const fileName = `atelier-${Date.now()}.jpg`;
     const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
@@ -1168,8 +1189,10 @@ async function handleBatchUpload(input) {
     const item = batchQueue[i];
     renderBatchItem(i, 'analyzing');
     try {
-      const base64 = await fileToBase64(item.file);
-      const mediaType = item.file.type;
+      const rawData = await fileToBase64(item.file);
+      const compressed = await compressImage('data:' + item.file.type + ';base64,' + rawData, 800, 0.6);
+      const base64 = compressed.split(',')[1];
+      const mediaType = 'image/jpeg';
       const response = await fetch('/api/ai', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
@@ -1181,7 +1204,7 @@ async function handleBatchUpload(input) {
       const data = await response.json();
       const result = JSON.parse(data.content[0].text.trim());
       item.data = result;
-      item.imageData = 'data:' + mediaType + ';base64,' + base64;
+      item.imageData = compressed;
       item.status = 'done';
     } catch(e) {
       item.status = 'error';
@@ -1232,10 +1255,11 @@ async function saveBatchAteliers() {
     try {
       let image_url = null;
       if (item.imageData) {
-        const blob = await (await fetch(item.imageData)).blob();
-        const ext = item.file.type.split('/')[1];
-        const fileName = `atelier-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType: item.file.type});
+        // Compresse à 800px avant upload (~100-150 KB)
+        const compressedForStorage = await compressImage(item.imageData, 800, 0.75);
+        const blob = await (await fetch(compressedForStorage)).blob();
+        const fileName = `atelier-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
         if (up) { const {data:url} = sb.storage.from('ateliers-photos').getPublicUrl(fileName); image_url = url.publicUrl; }
       }
       const row = {title:item.data.titre, domain:item.data.domaine, objectif:item.data.objectif, levels:(item.data.niveaux||'').split(',').map(s=>s.trim()).filter(Boolean), duree:item.data.duree||20, notes:item.data.notes||'', image_url};
