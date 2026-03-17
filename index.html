@@ -249,7 +249,12 @@
       <div class="font-bold" style="font-size:14px;margin-bottom:4px">Glissez une photo ou cliquez</div>
       <div class="text-sm text-mid">L'IA analysera automatiquement l'atelier</div>
     </div>
-    <div id="upload-preview" class="hidden mb-2"><img id="preview-img" style="width:100%;height:160px;object-fit:cover;border-radius:var(--rs)"/></div>
+    <div id="upload-preview" class="hidden mb-2">
+      <div id="preview-container" style="width:100%;height:160px;border-radius:var(--rs);overflow:hidden;position:relative;cursor:grab;background:var(--bg)">
+        <img id="preview-img" style="position:absolute;min-width:100%;min-height:100%;max-width:none;user-select:none;-webkit-user-drag:none;" draggable="false"/>
+      </div>
+      <div style="font-size:11px;color:var(--text-l);text-align:center;margin-top:4px">↔ Glissez l'image pour recadrer</div>
+    </div>
     <div id="ai-analyze-status" class="hidden"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA analyse la photo...</div></div></div>
     <div id="atelier-form">
       <div class="form-row">
@@ -442,14 +447,72 @@ async function deleteAtelier(id){
 }
 
 // ---- UPLOAD IMAGE ----
+let panState = {dragging:false, startX:0, startY:0, offX:0, offY:0};
+
+function setupImagePan(img, container) {
+  // Centre l'image au départ
+  img.onload = () => {
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const scale = Math.max(cw / iw, ch / ih);
+    const dispW = iw * scale, dispH = ih * scale;
+    panState.offX = (cw - dispW) / 2;
+    panState.offY = (ch - dispH) / 2;
+    img.style.width = dispW + 'px';
+    img.style.height = dispH + 'px';
+    img.style.left = panState.offX + 'px';
+    img.style.top = panState.offY + 'px';
+  };
+
+  const clamp = () => {
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    const iw = parseInt(img.style.width), ih = parseInt(img.style.height);
+    panState.offX = Math.min(0, Math.max(cw - iw, panState.offX));
+    panState.offY = Math.min(0, Math.max(ch - ih, panState.offY));
+    img.style.left = panState.offX + 'px';
+    img.style.top = panState.offY + 'px';
+  };
+
+  container.addEventListener('mousedown', e => {
+    panState.dragging = true;
+    panState.startX = e.clientX - panState.offX;
+    panState.startY = e.clientY - panState.offY;
+    container.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  container.addEventListener('touchstart', e => {
+    panState.dragging = true;
+    panState.startX = e.touches[0].clientX - panState.offX;
+    panState.startY = e.touches[0].clientY - panState.offY;
+    e.preventDefault();
+  }, {passive:false});
+
+  const onMove = (cx, cy) => {
+    if (!panState.dragging) return;
+    panState.offX = cx - panState.startX;
+    panState.offY = cy - panState.startY;
+    clamp();
+  };
+  document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  document.addEventListener('touchmove', e => onMove(e.touches[0].clientX, e.touches[0].clientY), {passive:true});
+
+  const onEnd = () => { panState.dragging = false; container.style.cursor = 'grab'; };
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
 function handleImageUpload(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
     currentImageData=e.target.result;
-    document.getElementById('upload-preview').classList.remove('hidden');
-    document.getElementById('preview-img').src=currentImageData;
+    const preview = document.getElementById('upload-preview');
+    const img = document.getElementById('preview-img');
+    const container = document.getElementById('preview-container');
+    preview.classList.remove('hidden');
     document.getElementById('upload-zone').classList.add('hidden');
+    img.src = currentImageData;
+    setupImagePan(img, container);
     analyzeWithAI(currentImageData);
   };
   reader.readAsDataURL(file);
@@ -504,11 +567,25 @@ async function saveAtelier(){
 
   let image_url=null;
   if(currentImageData){
-    const base64=currentImageData.split(',')[1];
-    const ext=currentImageData.match(/data:image\/([^;]+)/)[1];
-    const fileName=`atelier-${Date.now()}.${ext}`;
-    const blob=await(await fetch(currentImageData)).blob();
-    const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:`image/${ext}`});
+    // Capture la zone visible après recadrage
+    const container = document.getElementById('preview-container');
+    const img = document.getElementById('preview-img');
+    const canvas = document.createElement('canvas');
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    canvas.width = cw * 2; canvas.height = ch * 2; // x2 pour la qualité
+    const ctx = canvas.getContext('2d');
+    const imgEl = new Image(); imgEl.src = currentImageData;
+    await new Promise(r => { imgEl.onload = r; if (imgEl.complete) r(); });
+    const scale = parseInt(img.style.width) / imgEl.naturalWidth;
+    ctx.drawImage(imgEl,
+      -panState.offX / scale, -panState.offY / scale,
+      cw / scale, ch / scale,
+      0, 0, canvas.width, canvas.height
+    );
+    const croppedData = canvas.toDataURL('image/jpeg', 0.85);
+    const blob = await (await fetch(croppedData)).blob();
+    const fileName = `atelier-${Date.now()}.jpg`;
+    const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
     if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);image_url=url.publicUrl;}
   }
 
