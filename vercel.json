@@ -1,6 +1,13 @@
 {
   "functions": {
     "api/ai.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  }
+}{
+  "functions": {
+    "api/ai.js": {
       "maxDuration": 30
     }
   },
