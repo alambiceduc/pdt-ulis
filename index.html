@@ -127,6 +127,11 @@
       Fiches & Ressources
       <span class="nav-badge" id="badge-fiches">0</span>
     </div>
+    <div class="nav-item" onclick="showSection('materiel',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Matériel & Aides
+      <span class="nav-badge" id="badge-materiel">0</span>
+    </div>
     <div class="nav-item" onclick="showSection('generer',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       Générer PDT
@@ -217,6 +222,35 @@
       </div>
     </div>
     <div class="grid-3" id="fiches-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- MATÉRIEL & AIDES -->
+  <div class="section" id="section-materiel">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Matériel & Aides</div><div class="page-sub">Référencez ce qui est disponible dans votre classe</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" onclick="openModal('modal-add-aide')">+ Ajouter une aide</button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-materiel')">+ Ajouter du matériel</button>
+      </div>
+    </div>
+
+    <!-- Récap synthèse -->
+    <div class="card mb-3" style="cursor:pointer;border-style:dashed" onclick="toggleMaterielSynthese()">
+      <div class="flex items-center justify-between">
+        <div style="font-weight:700;font-size:14px">📊 Synthèse — ce qui est disponible dans ma classe</div>
+        <span id="mat-synthese-chevron" style="color:var(--text-m)">▼</span>
+      </div>
+      <div id="mat-synthese-content" class="hidden mt-2" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <!-- Onglets Matériel / Aides -->
+    <div class="flex gap-1 mb-2">
+      <button class="btn btn-sm btn-secondary mat-tab active" data-tab="materiel" onclick="setMatTab(this)">🔧 Matériel</button>
+      <button class="btn btn-sm btn-secondary mat-tab" data-tab="aides" onclick="setMatTab(this)">🤝 Aides</button>
+    </div>
+
+    <div id="materiel-list"></div>
+    <div id="aides-list" class="hidden"></div>
   </div>
 
   <!-- GÉNÉRER PDT -->
@@ -572,6 +606,68 @@
   </div>
 </div>
 
+<!-- MODAL ajouter matériel -->
+<div class="modal-overlay" id="modal-add-materiel">
+  <div class="modal">
+    <div class="modal-title">🔧 Ajouter du matériel</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom *</label><input type="text" id="mat-nom" placeholder="ex : Ciseaux adaptés droitier"/></div>
+      <div class="form-group"><label>Catégorie *</label>
+        <select id="mat-cat">
+          <option value="">— Choisir —</option>
+          <option value="adapte">Matériel adapté</option>
+          <option value="visuel">Support visuel</option>
+          <option value="numerique">Équipement numérique</option>
+          <option value="sensoriel">Matériel sensoriel</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Description / usage (optionnel)</label><input type="text" id="mat-desc" placeholder="ex : pour activités de découpage, dans le tiroir bleu"/></div>
+    <div class="form-group">
+      <label>Disponibilité</label>
+      <div class="flex gap-2 items-center mt-1">
+        <input type="checkbox" id="mat-dispo" checked style="width:18px;height:18px;cursor:pointer">
+        <label for="mat-dispo" style="margin:0;font-weight:400;cursor:pointer">Disponible actuellement en classe</label>
+      </div>
+    </div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-materiel')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMateriel()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ajouter aide -->
+<div class="modal-overlay" id="modal-add-aide">
+  <div class="modal">
+    <div class="modal-title">🤝 Ajouter une aide</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom *</label><input type="text" id="aide-nom" placeholder="ex : AVS présente le matin"/></div>
+      <div class="form-group"><label>Catégorie *</label>
+        <select id="aide-cat">
+          <option value="">— Choisir —</option>
+          <option value="humaine">Aide humaine</option>
+          <option value="technique">Aide technique</option>
+          <option value="methodologique">Aide méthodologique</option>
+          <option value="sensorielle">Aide sensorielle</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Description / usage (optionnel)</label><input type="text" id="aide-desc" placeholder="ex : pour la lecture à voix haute, déclenchement sur demande"/></div>
+    <div class="form-group">
+      <label>Disponibilité</label>
+      <div class="flex gap-2 items-center mt-1">
+        <input type="checkbox" id="aide-dispo" checked style="width:18px;height:18px;cursor:pointer">
+        <label for="aide-dispo" style="margin:0;font-weight:400;cursor:pointer">Disponible actuellement en classe</label>
+      </div>
+    </div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-aide')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveAide()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -682,7 +778,7 @@ async function loadAll(){
   ateliers = a.data||[];
   eleves = e.data||[];
   pdts = p.data||[];
-  await loadFiches();
+  await Promise.all([loadFiches(), loadMateriel()]);
   updateStats();
 }
 
@@ -704,6 +800,7 @@ function showSection(name,el){
   if(name==='ateliers')renderAteliers();
   if(name==='eleves')renderEleves();
   if(name==='fiches'){loadFiches().then(renderFiches);}
+  if(name==='materiel'){loadMateriel().then(()=>{renderMaterielList();renderAidesList();});}
   if(name==='generer')renderSelectStudents();
   if(name==='suivi')renderSuiviSelect();
 }
@@ -1049,6 +1146,9 @@ async function generatePDT(){
   const prevPdts=pdts.filter(p=>p.eleve_id===selectedStudentId).slice(-2);
   const prevContext=prevPdts.length?'\nPDT précédents :\n'+prevPdts.map(p=>`Semaine ${p.semaine}: ${(p.activities||[]).map(a=>`${a.titre} (${a.status==='done'?'réussi':a.status==='partial'?'partiel':'non fait'})`).join(', ')}`).join('\n'):'';
 
+  const materielDispo = materiel.filter(m=>m.disponible).map(m=>`- ${m.nom}${m.description?' ('+m.description+')':''} [${matCatLabels[m.categorie]||m.categorie}]`).join('\n');
+  const aidesDispo = aides.filter(a=>a.disponible).map(a=>`- ${a.nom}${a.description?' ('+a.description+')':''} [${aideCatLabels[a.categorie]||a.categorie}]`).join('\n');
+
   try{
     const response=await fetch('/api/ai',{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1063,12 +1163,18 @@ ${prevContext}
 
 RESSOURCES DISPONIBLES :
 ${ateliersList}
-${fichesList?'\nFICHES PAPIER DISPONIBLES :\n'+fichesList:''}
+${fichesList?'\nFICHES PAPIER :\n'+fichesList:''}
 
-CONSIGNES : Sélectionne exactement ${nbAct} activités adaptées. Alterne IMPÉRATIVEMENT entre ateliers de manipulation et fiches papier (au moins 1 fiche papier si disponible). ${consignes}
+MATÉRIEL DISPONIBLE EN CLASSE :
+${materielDispo||'(non renseigné)'}
+
+AIDES DISPONIBLES EN CLASSE :
+${aidesDispo||'(non renseigné)'}
+
+CONSIGNES : Sélectionne exactement ${nbAct} activités adaptées. Alterne ateliers de manipulation et fiches papier. Pour chaque activité, suggère UNIQUEMENT du matériel et des aides parmi ceux listés ci-dessus qui sont pertinents. ${consignes}
 
 Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
-{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"ressourceId":"id avec préfixe ATL: ou FCH:","titre":"titre","domaine":"domaine","type":"atelier ou fiche","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaine vide","ordre":1}]}`}]})}
+{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"ressourceId":"id avec préfixe ATL: ou FCH:","titre":"titre","domaine":"domaine","type":"atelier ou fiche","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaine vide","materiel":["nom matériel pertinent parmi la liste, ou tableau vide"],"aides":["nom aide pertinente parmi la liste, ou tableau vide"],"ordre":1}]}`}]})}
     );
     const data=await response.json();
     if(data.error) throw new Error(data.error.message);
@@ -1104,6 +1210,8 @@ function renderPDTResult(pdt){
             <div class="pdt-title">${isFiche?'📄 ':'🎮 '}${a.titre}</div>
             <div class="pdt-obj">${a.pourquoi}</div>
             ${a.adaptation?`<div class="text-xs mt-1" style="color:var(--c-amber-d);background:var(--c-amber-l);padding:3px 8px;border-radius:4px;display:inline-block">💡 ${a.adaptation}</div>`:''}
+            ${(a.materiel&&a.materiel.length)?`<div class="mt-1">${a.materiel.map(m=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:10px;background:var(--c-teal-l);color:var(--c-teal-d);margin:2px;font-weight:600">🔧 ${m}</span>`).join('')}</div>`:''}
+            ${(a.aides&&a.aides.length)?`<div class="mt-1">${a.aides.map(h=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:10px;background:var(--c-coral-l);color:var(--c-coral-d);margin:2px;font-weight:600">🤝 ${h}</span>`).join('')}</div>`:''}
             ${ficheObj&&ficheObj.file_url?`<div class="mt-1"><a href="${ficheObj.file_url}" target="_blank" class="btn btn-sm" style="font-size:11px;color:var(--c-blue-d);background:var(--c-blue-l);border:none">🖨️ Imprimer la fiche</a></div>`:''}
           </div>
           <div style="margin-left:auto;flex-shrink:0">
@@ -1428,7 +1536,192 @@ loadAll().then(()=>{
   renderAteliers();
 });
 
-// ---- FICHES ----
+// ---- MATÉRIEL & AIDES ----
+let materiel = [], aides = [], matTab = 'materiel';
+
+const matCatLabels = {adapte:'Matériel adapté',visuel:'Support visuel',numerique:'Numérique',sensoriel:'Sensoriel'};
+const aideCatLabels = {humaine:'Aide humaine',technique:'Aide technique',methodologique:'Aide méthodologique',sensorielle:'Aide sensorielle'};
+const matCatColors = {adapte:'teal',visuel:'blue',numerique:'purple',sensoriel:'amber'};
+const aideCatColors = {humaine:'coral',technique:'blue',methodologique:'green',sensorielle:'purple'};
+
+async function loadMateriel(){
+  const [m,a] = await Promise.all([
+    sb.from('materiel').select('*').order('categorie').order('nom'),
+    sb.from('aides').select('*').order('categorie').order('nom')
+  ]);
+  materiel = m.data||[];
+  aides = a.data||[];
+  document.getElementById('badge-materiel').textContent = materiel.length + aides.length;
+}
+
+function setMatTab(btn){
+  document.querySelectorAll('.mat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  matTab = btn.dataset.tab;
+  if(matTab==='materiel'){ document.getElementById('materiel-list').classList.remove('hidden'); document.getElementById('aides-list').classList.add('hidden'); }
+  else { document.getElementById('aides-list').classList.remove('hidden'); document.getElementById('materiel-list').classList.add('hidden'); }
+}
+
+function toggleMaterielSynthese(){
+  const c=document.getElementById('mat-synthese-content');
+  const ch=document.getElementById('mat-synthese-chevron');
+  if(c.classList.contains('hidden')){ c.classList.remove('hidden'); ch.textContent='▲'; renderMaterielSynthese(); }
+  else { c.classList.add('hidden'); ch.textContent='▼'; }
+}
+
+function renderMaterielSynthese(){
+  const content = document.getElementById('mat-synthese-content');
+  const totalM = materiel.length, totalA = aides.length;
+  if(!totalM && !totalA){ content.innerHTML='<div class="text-sm text-mid">Aucun matériel ni aide référencé.</div>'; return; }
+
+  const matGroups = {};
+  materiel.forEach(m=>{ if(!matGroups[m.categorie]) matGroups[m.categorie]=[]; matGroups[m.categorie].push(m); });
+  const aideGroups = {};
+  aides.forEach(a=>{ if(!aideGroups[a.categorie]) aideGroups[a.categorie]=[]; aideGroups[a.categorie].push(a); });
+
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div>
+        <div style="font-weight:700;font-size:13px;color:var(--text-m);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">🔧 Matériel (${totalM})</div>
+        ${Object.entries(matGroups).map(([cat,items])=>`
+          <div class="mb-1">
+            <div style="font-size:12px;font-weight:700;color:var(--c-${matCatColors[cat]||'teal'}-d);margin-bottom:4px">${matCatLabels[cat]||cat}</div>
+            ${items.map(m=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:3px">
+              <span style="width:8px;height:8px;border-radius:50%;background:${m.disponible?'var(--c-teal)':'var(--border-s)'};flex-shrink:0"></span>
+              <span style="${!m.disponible?'color:var(--text-l);text-decoration:line-through':''}">${m.nom}</span>
+            </div>`).join('')}
+          </div>`).join('')}
+        ${!totalM?'<div class="text-sm text-mid">Aucun matériel référencé.</div>':''}
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:13px;color:var(--text-m);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">🤝 Aides (${totalA})</div>
+        ${Object.entries(aideGroups).map(([cat,items])=>`
+          <div class="mb-1">
+            <div style="font-size:12px;font-weight:700;color:var(--c-${aideCatColors[cat]||'coral'}-d);margin-bottom:4px">${aideCatLabels[cat]||cat}</div>
+            ${items.map(a=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:3px">
+              <span style="width:8px;height:8px;border-radius:50%;background:${a.disponible?'var(--c-teal)':'var(--border-s)'};flex-shrink:0"></span>
+              <span style="${!a.disponible?'color:var(--text-l);text-decoration:line-through':''}">${a.nom}</span>
+            </div>`).join('')}
+          </div>`).join('')}
+        ${!totalA?'<div class="text-sm text-mid">Aucune aide référencée.</div>':''}
+      </div>
+    </div>`;
+}
+
+function renderMaterielList(){
+  const list = document.getElementById('materiel-list');
+  if(!materiel.length){ list.innerHTML=`<div class="empty"><div class="empty-icon">🔧</div><div>Aucun matériel référencé.</div><div class="text-sm mt-1">Ajoutez le matériel disponible dans votre classe.</div></div>`; return; }
+  const groups = {};
+  materiel.forEach(m=>{ if(!groups[m.categorie]) groups[m.categorie]=[]; groups[m.categorie].push(m); });
+  list.innerHTML = Object.entries(groups).map(([cat,items])=>`
+    <div class="card mb-2">
+      <div style="font-weight:700;font-size:13px;color:var(--c-${matCatColors[cat]||'teal'}-d);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">${matCatLabels[cat]||cat} <span style="font-weight:400;color:var(--text-l)">(${items.length})</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem">
+        ${items.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:var(--rs);background:${m.disponible?'var(--c-'+matCatColors[cat]+'-l)':'var(--bg)'};border:1px solid var(--border)">
+          <div>
+            <div style="font-size:13px;font-weight:600;${!m.disponible?'color:var(--text-l);text-decoration:line-through':''}">${m.nom}</div>
+            ${m.description?`<div style="font-size:11px;color:var(--text-m)">${m.description}</div>`:''}
+          </div>
+          <div class="flex gap-1">
+            <button onclick="toggleDispoMateriel('${m.id}')" title="${m.disponible?'Marquer indisponible':'Marquer disponible'}" style="font-size:14px;background:none;border:none;cursor:pointer">${m.disponible?'✅':'⭕'}</button>
+            <button onclick="deleteMateriel('${m.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--text-l)">✕</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderAidesList(){
+  const list = document.getElementById('aides-list');
+  if(!aides.length){ list.innerHTML=`<div class="empty"><div class="empty-icon">🤝</div><div>Aucune aide référencée.</div><div class="text-sm mt-1">Ajoutez les aides disponibles dans votre classe.</div></div>`; return; }
+  const groups = {};
+  aides.forEach(a=>{ if(!groups[a.categorie]) groups[a.categorie]=[]; groups[a.categorie].push(a); });
+  list.innerHTML = Object.entries(groups).map(([cat,items])=>`
+    <div class="card mb-2">
+      <div style="font-weight:700;font-size:13px;color:var(--c-${aideCatColors[cat]||'coral'}-d);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">${aideCatLabels[cat]||cat} <span style="font-weight:400;color:var(--text-l)">(${items.length})</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem">
+        ${items.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:var(--rs);background:${a.disponible?'var(--c-'+aideCatColors[cat]+'-l)':'var(--bg)'};border:1px solid var(--border)">
+          <div>
+            <div style="font-size:13px;font-weight:600;${!a.disponible?'color:var(--text-l);text-decoration:line-through':''}">${a.nom}</div>
+            ${a.description?`<div style="font-size:11px;color:var(--text-m)">${a.description}</div>`:''}
+          </div>
+          <div class="flex gap-1">
+            <button onclick="toggleDispoAide('${a.id}')" title="${a.disponible?'Marquer indisponible':'Marquer disponible'}" style="font-size:14px;background:none;border:none;cursor:pointer">${a.disponible?'✅':'⭕'}</button>
+            <button onclick="deleteAide('${a.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--text-l)">✕</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+async function saveMateriel(){
+  const nom=document.getElementById('mat-nom').value.trim();
+  const cat=document.getElementById('mat-cat').value;
+  if(!nom||!cat){toast('Merci de renseigner le nom et la catégorie.');return;}
+  const row={nom,categorie:cat,description:document.getElementById('mat-desc').value.trim(),disponible:document.getElementById('mat-dispo').checked};
+  const {data,error}=await sb.from('materiel').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  materiel.push(data[0]);
+  materiel.sort((a,b)=>a.categorie.localeCompare(b.categorie)||a.nom.localeCompare(b.nom));
+  document.getElementById('badge-materiel').textContent=materiel.length+aides.length;
+  closeModal('modal-add-materiel');
+  renderMaterielList();
+  ['mat-nom','mat-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mat-cat').value='';
+  document.getElementById('mat-dispo').checked=true;
+  toast('✅ Matériel ajouté !');
+}
+
+async function saveAide(){
+  const nom=document.getElementById('aide-nom').value.trim();
+  const cat=document.getElementById('aide-cat').value;
+  if(!nom||!cat){toast('Merci de renseigner le nom et la catégorie.');return;}
+  const row={nom,categorie:cat,description:document.getElementById('aide-desc').value.trim(),disponible:document.getElementById('aide-dispo').checked};
+  const {data,error}=await sb.from('aides').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  aides.push(data[0]);
+  aides.sort((a,b)=>a.categorie.localeCompare(b.categorie)||a.nom.localeCompare(b.nom));
+  document.getElementById('badge-materiel').textContent=materiel.length+aides.length;
+  closeModal('modal-add-aide');
+  renderAidesList();
+  ['aide-nom','aide-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('aide-cat').value='';
+  document.getElementById('aide-dispo').checked=true;
+  toast('✅ Aide ajoutée !');
+}
+
+async function toggleDispoMateriel(id){
+  const m=materiel.find(x=>x.id===id); if(!m) return;
+  m.disponible=!m.disponible;
+  await sb.from('materiel').update({disponible:m.disponible}).eq('id',id);
+  renderMaterielList();
+}
+
+async function toggleDispoAide(id){
+  const a=aides.find(x=>x.id===id); if(!a) return;
+  a.disponible=!a.disponible;
+  await sb.from('aides').update({disponible:a.disponible}).eq('id',id);
+  renderAidesList();
+}
+
+async function deleteMateriel(id){
+  if(!confirm('Supprimer ce matériel ?'))return;
+  await sb.from('materiel').delete().eq('id',id);
+  materiel=materiel.filter(m=>m.id!==id);
+  document.getElementById('badge-materiel').textContent=materiel.length+aides.length;
+  renderMaterielList();
+  toast('Matériel supprimé.');
+}
+
+async function deleteAide(id){
+  if(!confirm('Supprimer cette aide ?'))return;
+  await sb.from('aides').delete().eq('id',id);
+  aides=aides.filter(a=>a.id!==id);
+  document.getElementById('badge-materiel').textContent=materiel.length+aides.length;
+  renderAidesList();
+  toast('Aide supprimée.');
+}
+
 let fiches = [];
 let fichesFilter = 'all';
 let lastGeneratedFiche = null;
