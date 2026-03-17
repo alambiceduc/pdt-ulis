@@ -122,6 +122,11 @@
       Élèves / PI
       <span class="nav-badge" id="badge-eleves">0</span>
     </div>
+    <div class="nav-item" onclick="showSection('fiches',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Fiches & Ressources
+      <span class="nav-badge" id="badge-fiches">0</span>
+    </div>
     <div class="nav-item" onclick="showSection('generer',this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       Générer PDT
@@ -192,6 +197,26 @@
       <button class="btn btn-primary" onclick="openModal('modal-add-eleve')">+ Ajouter un élève</button>
     </div>
     <div class="grid-2" id="eleves-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- FICHES & RESSOURCES -->
+  <div class="section" id="section-fiches">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Fiches & Ressources</div><div class="page-sub">Uploadez vos fiches existantes ou générez-en de nouvelles avec l'IA</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" onclick="openModal('modal-gen-fiche')">✨ Générer une fiche</button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-fiche')">+ Ajouter une fiche</button>
+      </div>
+    </div>
+    <div class="card mb-3" style="padding:.85rem 1.25rem">
+      <div class="flex gap-1 flex-wrap items-center">
+        <span class="text-sm text-mid" style="margin-right:4px">Type :</span>
+        <button class="btn btn-sm btn-secondary fiche-filter active" data-type="all" onclick="setFicheFilter(this)">Toutes</button>
+        <button class="btn btn-sm btn-secondary fiche-filter" data-type="upload" onclick="setFicheFilter(this)">📎 Uploadées</button>
+        <button class="btn btn-sm btn-secondary fiche-filter" data-type="generee" onclick="setFicheFilter(this)">✨ Générées</button>
+      </div>
+    </div>
+    <div class="grid-3" id="fiches-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
   </div>
 
   <!-- GÉNÉRER PDT -->
@@ -454,6 +479,99 @@
   </div>
 </div>
 
+<!-- MODAL ajouter fiche -->
+<div class="modal-overlay" id="modal-add-fiche">
+  <div class="modal">
+    <div class="modal-title">📎 Ajouter une fiche / ressource</div>
+    <div class="upload-zone mb-2" id="fiche-upload-zone" onclick="document.getElementById('fiche-file-input').click()">
+      <input type="file" id="fiche-file-input" accept=".pdf,image/*" onchange="handleFicheUpload(this)">
+      <div style="font-size:2rem;margin-bottom:.75rem">📄</div>
+      <div class="font-bold" style="font-size:14px;margin-bottom:4px">PDF ou photo de fiche</div>
+      <div class="text-sm text-mid">L'IA détecte automatiquement domaine, type et niveau</div>
+    </div>
+    <div id="fiche-analyze-status" class="hidden mb-2">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-teal-d);background:var(--c-teal-l);padding:.6rem 1rem;border-radius:var(--rs)">
+        <div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>L'IA analyse la fiche...
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Titre *</label><input type="text" id="fiche-title" placeholder="ex : Addition pose écrite CE1"/></div>
+      <div class="form-group"><label>Domaine *</label>
+        <select id="fiche-domain">
+          <option value="">— Choisir —</option>
+          <optgroup label="Français"><option>Lecture / Compréhension</option><option>Production d'écrits / Écriture</option><option>Étude de la langue</option><option>Langage oral</option><option>Calligraphie / Graphisme</option></optgroup>
+          <optgroup label="Mathématiques"><option>Nombres et calculs</option><option>Grandeurs et mesures</option><option>Espace et géométrie</option><option>Résolution de problèmes</option></optgroup>
+          <optgroup label="Autres disciplines"><option>Sciences / Découverte du monde</option><option>Arts / Créativité</option><option>Éducation musicale</option><option>Éducation physique</option></optgroup>
+          <optgroup label="Fonctions cognitives"><option>Mémoire et attention</option><option>Discrimination visuelle</option><option>Séquençage / Logique</option><option>Raisonnement</option><option>Motricité fine</option><option>Autonomie</option><option>Socio-émotionnel</option><option>Vie pratique</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="fiche-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Type d'exercice</label>
+        <select id="fiche-type">
+          <option value="exercice">Exercice classique</option>
+          <option value="trous">Exercice à trous</option>
+          <option value="calcul">Calcul</option>
+          <option value="comprehension">Compréhension</option>
+          <option value="coloriage">Coloriage / Dessin</option>
+          <option value="cognitif">Fonction cognitive</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="fiche-notes" placeholder="ex : version simplifiée, avec aide-mémoire"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-fiche')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFiche()">Enregistrer la fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL générer fiche IA -->
+<div class="modal-overlay" id="modal-gen-fiche">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-title">✨ Générer une fiche avec l'IA</div>
+    <div class="form-row">
+      <div class="form-group"><label>Domaine *</label>
+        <select id="gen-domain">
+          <option value="">— Choisir —</option>
+          <optgroup label="Français"><option>Lecture / Compréhension</option><option>Production d'écrits / Écriture</option><option>Étude de la langue</option><option>Langage oral</option><option>Calligraphie / Graphisme</option></optgroup>
+          <optgroup label="Mathématiques"><option>Nombres et calculs</option><option>Grandeurs et mesures</option><option>Espace et géométrie</option><option>Résolution de problèmes</option></optgroup>
+          <optgroup label="Fonctions cognitives"><option>Mémoire et attention</option><option>Discrimination visuelle</option><option>Séquençage / Logique</option><option>Raisonnement</option></optgroup>
+        </select>
+      </div>
+      <div class="form-group"><label>Type de fiche *</label>
+        <select id="gen-type">
+          <option value="trous">Exercice à trous</option>
+          <option value="calcul">Calcul / Numération</option>
+          <option value="comprehension">Compréhension de texte</option>
+          <option value="coloriage">Coloriage dirigé</option>
+          <option value="memoire">Mémoire / Attention</option>
+          <option value="discrimination">Discrimination visuelle</option>
+          <option value="sequençage">Séquençage / Logique</option>
+          <option value="motricite">Graphisme / Motricité fine</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="gen-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Thème / Sujet (optionnel)</label><input type="text" id="gen-theme" placeholder="ex : les animaux, l'automne, les dizaines"/></div>
+    </div>
+    <div class="form-group"><label>Consignes particulières (optionnel)</label><textarea id="gen-consignes" rows="2" placeholder="ex : consignes très courtes, pictogrammes, 5 exercices max..."></textarea></div>
+    <div id="gen-preview" class="hidden mt-2">
+      <div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;max-height:400px;overflow-y:auto" id="gen-preview-content"></div>
+    </div>
+    <div id="gen-loading" class="hidden mt-2"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA crée la fiche...</div></div></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-gen-fiche')">Annuler</button>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" id="gen-save-btn" onclick="saveGeneratedFiche()" style="display:none">💾 Sauvegarder</button>
+        <button class="btn btn-primary" onclick="generateFiche()">✨ Générer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -564,6 +682,7 @@ async function loadAll(){
   ateliers = a.data||[];
   eleves = e.data||[];
   pdts = p.data||[];
+  await loadFiches();
   updateStats();
 }
 
@@ -584,6 +703,7 @@ function showSection(name,el){
   if(el)el.classList.add('active');
   if(name==='ateliers')renderAteliers();
   if(name==='eleves')renderEleves();
+  if(name==='fiches'){loadFiches().then(renderFiches);}
   if(name==='generer')renderSelectStudents();
   if(name==='suivi')renderSuiviSelect();
 }
@@ -924,14 +1044,15 @@ async function generatePDT(){
   const resultDiv=document.getElementById('pdt-result');
   resultDiv.innerHTML=`<div class="card" style="height:100%"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA prépare le plan de ${eleve.nom}...</div></div></div>`;
 
-  const ateliersList=ateliers.map(a=>`- [${a.id}] "${a.title}" (${a.domain}) — Objectif: ${a.objectif||'non renseigné'} — Niveaux: ${(a.levels||[]).join(', ')||'?'} — ${a.duree||20} min`).join('\n');
+  const ateliersList=ateliers.map(a=>`- [ATL:${a.id}] "${a.title}" (${a.domain}) — ${a.objectif||'non renseigné'} — Niveaux: ${(a.levels||[]).join(', ')||'?'} — TYPE: atelier manipulation`).join('\n');
+  const fichesList=fiches.map(f=>`- [FCH:${f.id}] "${f.title}" (${f.domain}) — ${f.objectif||'exercice papier'} — Niveaux: ${(f.levels||[]).join(', ')||'?'} — TYPE: fiche papier ${f.source==='generee'?'(générée IA)':'(uploadée)'}`).join('\n');
   const prevPdts=pdts.filter(p=>p.eleve_id===selectedStudentId).slice(-2);
   const prevContext=prevPdts.length?'\nPDT précédents :\n'+prevPdts.map(p=>`Semaine ${p.semaine}: ${(p.activities||[]).map(a=>`${a.titre} (${a.status==='done'?'réussi':a.status==='partial'?'partiel':'non fait'})`).join(', ')}`).join('\n'):'';
 
   try{
     const response=await fetch('/api/ai',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté.
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:`Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté.
 
 PROFIL : ${eleve.nom} (${eleve.classe||''})
 Difficultés : ${(eleve.difficultes||[]).join(', ')||'non renseignées'}
@@ -940,15 +1061,17 @@ Objectifs PI : ${eleve.objectifs||'non renseignés'}
 Adaptations : ${eleve.adaptations||'non renseignées'}
 ${prevContext}
 
-ATELIERS DISPONIBLES :
+RESSOURCES DISPONIBLES :
 ${ateliersList}
+${fichesList?'\nFICHES PAPIER DISPONIBLES :\n'+fichesList:''}
 
-CONSIGNES : Sélectionne exactement ${nbAct} ateliers adaptés. ${consignes}
+CONSIGNES : Sélectionne exactement ${nbAct} activités adaptées. Alterne IMPÉRATIVEMENT entre ateliers de manipulation et fiches papier (au moins 1 fiche papier si disponible). ${consignes}
 
 Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
-{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"atelierId":"id","titre":"titre","domaine":"domaine","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaîne vide","ordre":1}]}`}]})
-    });
+{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"ressourceId":"id avec préfixe ATL: ou FCH:","titre":"titre","domaine":"domaine","type":"atelier ou fiche","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaine vide","ordre":1}]}`}]})}
+    );
     const data=await response.json();
+    if(data.error) throw new Error(data.error.message);
     const result=JSON.parse(data.content[0].text.trim());
     const pdt={eleve_id:selectedStudentId,eleve_nom:eleve.nom,semaine,commentaire:result.commentaire,activities:result.activites.map(a=>({...a,status:'todo'}))};
     const {data:saved,error}=await sb.from('plans_travail').insert([pdt]).select();
@@ -973,12 +1096,15 @@ function renderPDTResult(pdt){
       ${pdt.commentaire?`<div style="background:var(--c-teal-l);border-left:4px solid var(--c-teal);padding:.75rem 1rem;border-radius:var(--rs);margin-bottom:1rem;font-size:14px;color:var(--c-teal-d)">${pdt.commentaire}</div>`:''}
       ${(pdt.activities||[]).map((a,i)=>{
         const color=domainHex[a.domaine]||'#1D9E75';
-        return`<div class="pdt-activity">
-          <div class="pdt-num" style="background:${color}22;color:${color}">${a.ordre||i+1}</div>
+        const isFiche = a.type==='fiche';
+        const ficheObj = isFiche ? fiches.find(f=>a.ressourceId===`FCH:${f.id}`) : null;
+        return`<div class="pdt-activity" style="${isFiche?'border-left:3px solid var(--c-blue);':''}">
+          <div class="pdt-num" style="background:${isFiche?'var(--c-blue-l)':color+'22'};color:${isFiche?'var(--c-blue-d)':color}">${a.ordre||i+1}</div>
           <div class="pdt-content">
-            <div class="pdt-title">${a.titre}</div>
+            <div class="pdt-title">${isFiche?'📄 ':'🎮 '}${a.titre}</div>
             <div class="pdt-obj">${a.pourquoi}</div>
             ${a.adaptation?`<div class="text-xs mt-1" style="color:var(--c-amber-d);background:var(--c-amber-l);padding:3px 8px;border-radius:4px;display:inline-block">💡 ${a.adaptation}</div>`:''}
+            ${ficheObj&&ficheObj.file_url?`<div class="mt-1"><a href="${ficheObj.file_url}" target="_blank" class="btn btn-sm" style="font-size:11px;color:var(--c-blue-d);background:var(--c-blue-l);border:none">🖨️ Imprimer la fiche</a></div>`:''}
           </div>
           <div style="margin-left:auto;flex-shrink:0">
             <select class="btn btn-sm btn-secondary" onchange="updateActivityStatus('${pdt.id}',${i},this.value)" style="padding:4px 8px;font-size:12px">
@@ -1301,6 +1427,210 @@ uz.addEventListener('drop',e=>{
 loadAll().then(()=>{
   renderAteliers();
 });
+
+// ---- FICHES ----
+let fiches = [];
+let fichesFilter = 'all';
+let lastGeneratedFiche = null;
+
+async function loadFiches(){
+  const {data} = await sb.from('fiches').select('*').order('created_at',{ascending:false});
+  fiches = data||[];
+  document.getElementById('badge-fiches').textContent = fiches.length;
+}
+
+function setFicheFilter(btn){
+  document.querySelectorAll('.fiche-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  fichesFilter = btn.dataset.type;
+  renderFiches();
+}
+
+function renderFiches(){
+  const grid = document.getElementById('fiches-grid');
+  const filtered = fichesFilter==='all' ? fiches : fiches.filter(f=>f.source===fichesFilter);
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📄</div><div>Aucune fiche${fichesFilter!=='all'?' dans cette catégorie':''}.</div></div>`;
+    return;
+  }
+  const typeLabels = {trous:'À trous',calcul:'Calcul',comprehension:'Compréhension',coloriage:'Coloriage',memoire:'Mémoire',discrimination:'Discrimination',sequençage:'Séquençage',motricite:'Graphisme',exercice:'Exercice',cognitif:'Cognitif',generee:'Générée IA'};
+  grid.innerHTML = filtered.map(f=>`
+    <div class="card" style="border-top:3px solid ${domainHex[f.domain]||'var(--c-teal)'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem">
+        <div style="font-family:'Nunito';font-weight:700;font-size:14px;line-height:1.3;flex:1">${f.title}</div>
+        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${f.source==='generee'?'var(--c-purple-l)':'var(--c-blue-l)'};color:${f.source==='generee'?'var(--c-purple-d)':'var(--c-blue-d)'};flex-shrink:0;margin-left:6px;font-weight:700">${f.source==='generee'?'✨ IA':'📎 Upload'}</span>
+      </div>
+      <div class="atelier-tags mb-1">
+        ${domainTag(f.domain)}
+        ${(f.levels||[]).slice(0,2).map(l=>`<span class="tag" style="background:var(--bg);color:var(--text-m);border:1px solid var(--border)">${l}</span>`).join('')}
+        ${f.type_fiche?`<span class="tag tag-amber">${typeLabels[f.type_fiche]||f.type_fiche}</span>`:''}
+      </div>
+      ${f.objectif?`<div class="text-xs text-mid">${f.objectif.substring(0,100)}${f.objectif.length>100?'…':''}</div>`:''}
+      ${f.notes?`<div class="text-xs text-mid mt-1">💡 ${f.notes}</div>`:''}
+      <div class="flex gap-1 mt-2">
+        ${f.file_url?`<a href="${f.file_url}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:12px">👁 Voir</a>`:''}
+        ${f.source==='generee'&&f.file_url?`<button class="btn btn-sm" style="color:var(--c-teal-d);background:var(--c-teal-l);border:none;font-size:12px" onclick="printFiche('${f.id}')">🖨️ Imprimer</button>`:''}
+        <button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px;margin-left:auto" onclick="deleteFiche('${f.id}')">Supprimer</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteFiche(id){
+  if(!confirm('Supprimer cette fiche ?'))return;
+  await sb.from('fiches').delete().eq('id',id);
+  fiches = fiches.filter(f=>f.id!==id);
+  document.getElementById('badge-fiches').textContent = fiches.length;
+  renderFiches();
+  toast('Fiche supprimée.');
+}
+
+// Upload fiche existante
+async function handleFicheUpload(input){
+  const file = input.files[0]; if(!file) return;
+  document.getElementById('fiche-analyze-status').classList.remove('hidden');
+  document.getElementById('fiche-upload-zone').style.opacity='.5';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='none';
+  try{
+    let messageContent = [];
+    if(file.type==='application/pdf'){
+      const images = await pdfToImages(file, 2);
+      messageContent = [...images.map(d=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:d}})),{type:'text',text:ficheAnalyzePrompt()}];
+    } else {
+      const raw = await fileToBase64(file);
+      const compressed = await compressImage('data:'+file.type+';base64,'+raw, 800, 0.7);
+      messageContent = [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:compressed.split(',')[1]}},{type:'text',text:ficheAnalyzePrompt()}];
+    }
+    const response = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:messageContent}]})});
+    const data = await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const result = JSON.parse(data.content[0].text.trim());
+    if(result.titre) document.getElementById('fiche-title').value=result.titre;
+    if(result.domaine){ const s=document.getElementById('fiche-domain'); for(let o of s.options) if(o.value===result.domaine){s.value=result.domaine;break;} }
+    if(result.niveaux) document.getElementById('fiche-levels').value=result.niveaux;
+    if(result.type){ const s=document.getElementById('fiche-type'); for(let o of s.options) if(o.value===result.type){s.value=result.type;break;} }
+    if(result.notes) document.getElementById('fiche-notes').value=result.notes;
+    toast('✨ Fiche analysée !');
+  } catch(e){ toast('Analyse impossible — remplissez manuellement.',4000); console.error(e); }
+  document.getElementById('fiche-analyze-status').classList.add('hidden');
+  document.getElementById('fiche-upload-zone').style.opacity='1';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='auto';
+}
+
+function ficheAnalyzePrompt(){
+  return`Tu es expert en pédagogie ULIS. Analyse cette fiche d'exercice scolaire. Réponds UNIQUEMENT en JSON valide sans backticks :
+{"titre":"Titre court de la fiche","domaine":"Un parmi : ${DOMAINE_LISTE_IA}, Mémoire et attention, Discrimination visuelle, Séquençage / Logique, Raisonnement","niveaux":"ex: CP, CE1","type":"Un parmi : trous, calcul, comprehension, coloriage, memoire, discrimination, sequençage, motricite, exercice","notes":"Remarque ou adaptation si pertinent (sinon chaine vide)","objectif":"Objectif pédagogique (1 phrase)"}`;
+}
+
+async function saveFiche(){
+  const title=document.getElementById('fiche-title').value.trim();
+  const domain=document.getElementById('fiche-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le titre et le domaine.');return;}
+  const file=document.getElementById('fiche-file-input').files[0];
+  let file_url=null;
+  if(file){
+    let blob;
+    if(file.type==='application/pdf'){
+      blob=file;
+    } else {
+      const raw=await fileToBase64(file);
+      const comp=await compressImage('data:'+file.type+';base64,'+raw,1200,0.8);
+      blob=await(await fetch(comp)).blob();
+    }
+    const fileName=`fiche-${Date.now()}.${file.type==='application/pdf'?'pdf':'jpg'}`;
+    const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:file.type==='application/pdf'?'application/pdf':'image/jpeg'});
+    if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);file_url=url.publicUrl;}
+  }
+  const row={title,domain,type_fiche:document.getElementById('fiche-type').value,objectif:'',levels:document.getElementById('fiche-levels').value.split(',').map(s=>s.trim()).filter(Boolean),notes:document.getElementById('fiche-notes').value.trim(),file_url,source:'upload'};
+  const {data,error}=await sb.from('fiches').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  fiches.unshift(data[0]);
+  document.getElementById('badge-fiches').textContent=fiches.length;
+  closeModal('modal-add-fiche');
+  renderFiches();
+  ['fiche-title','fiche-levels','fiche-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fiche-domain').value='';
+  document.getElementById('fiche-file-input').value='';
+  document.getElementById('fiche-upload-zone').style.opacity='1';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='auto';
+  toast('✅ Fiche enregistrée !');
+}
+
+// Génération IA de fiche
+async function generateFiche(){
+  const domain=document.getElementById('gen-domain').value;
+  const type=document.getElementById('gen-type').value;
+  if(!domain||!type){toast('Choisissez un domaine et un type.');return;}
+  const levels=document.getElementById('gen-levels').value.trim()||'CE1';
+  const theme=document.getElementById('gen-theme').value.trim();
+  const consignes=document.getElementById('gen-consignes').value.trim();
+
+  document.getElementById('gen-loading').classList.remove('hidden');
+  document.getElementById('gen-preview').classList.add('hidden');
+  document.getElementById('gen-save-btn').style.display='none';
+
+  const typeDesc={trous:'exercice à trous avec des blancs à compléter',calcul:'exercice de calcul avec opérations',comprehension:'texte court suivi de questions de compréhension',coloriage:'activité de coloriage avec consignes simples et formes à colorier',memoire:'exercice de mémoire visuelle (mémoriser puis retrouver)',discrimination:'exercice de discrimination visuelle (trouver l\'intrus, les différences, les similaires)',sequençage:'exercice de séquençage ou logique (remettre dans l\'ordre, trouver la suite)',motricite:'exercice de graphisme avec tracés à reproduire ou compléter'};
+
+  try{
+    const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:`Tu es une enseignante spécialisée ULIS experte en adaptations pédagogiques. Crée une fiche d'exercices A4 adaptée pour un élève de niveau ${levels}.
+
+Domaine : ${domain}
+Type : ${typeDesc[type]||type}
+${theme?'Thème : '+theme:''}
+Niveau : ${levels}
+${consignes?'Consignes particulières : '+consignes:''}
+
+Génère une fiche complète en HTML pur (pas de doctype, juste le contenu) avec :
+- Format A4 (max-width 794px, padding 2cm)
+- Police lisible (Arial ou sans-serif), taille min 14px pour les consignes élève
+- Titre de la fiche en haut (domaine + thème)
+- Consignes claires et courtes
+- 4 à 6 exercices adaptés au niveau ${levels}
+- Espaces suffisants pour écrire/dessiner
+- Style imprimable (fond blanc, pas de couleurs trop sombres)
+- NOM : ______ DATE : ______ en haut à droite
+Pour les fonctions cognitives : utilise des symboles simples (★ ● ▲ ■) plutôt que du texte complexe.
+Réponds UNIQUEMENT avec le HTML de la fiche, sans explication avant/après.`}]})
+    });
+    const data=await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const html=data.content[0].text.trim();
+    lastGeneratedFiche={html,domain,type,levels,theme};
+    document.getElementById('gen-preview-content').innerHTML=html;
+    document.getElementById('gen-preview').classList.remove('hidden');
+    document.getElementById('gen-save-btn').style.display='inline-flex';
+    toast('✨ Fiche générée ! Vérifiez l\'aperçu avant de sauvegarder.');
+  } catch(e){ toast('Erreur génération IA.',4000); console.error(e); }
+  document.getElementById('gen-loading').classList.add('hidden');
+}
+
+async function saveGeneratedFiche(){
+  if(!lastGeneratedFiche) return;
+  const {html,domain,type,levels,theme}=lastGeneratedFiche;
+  const title=`Fiche ${domain}${theme?' — '+theme:''} (${levels})`;
+  const blob=new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title></head><body>${html}</body></html>`],{type:'text/html'});
+  const fileName=`fiche-gen-${Date.now()}.html`;
+  const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:'text/html'});
+  let file_url=null;
+  if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);file_url=url.publicUrl;}
+  const row={title,domain,type_fiche:type,objectif:`Fiche ${type} niveau ${levels}`,levels:levels.split(',').map(s=>s.trim()).filter(Boolean),notes:theme||'',file_url,source:'generee'};
+  const {data,error}=await sb.from('fiches').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  fiches.unshift(data[0]);
+  document.getElementById('badge-fiches').textContent=fiches.length;
+  closeModal('modal-gen-fiche');
+  renderFiches();
+  lastGeneratedFiche=null;
+  document.getElementById('gen-preview').classList.add('hidden');
+  document.getElementById('gen-save-btn').style.display='none';
+  toast('✅ Fiche sauvegardée dans vos ressources !');
+}
+
+function printFiche(id){
+  const f=fiches.find(x=>x.id===id);
+  if(f&&f.file_url) window.open(f.file_url,'_blank');
+}
+
 </script>
 </body>
 </html>
