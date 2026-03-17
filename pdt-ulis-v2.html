@@ -610,6 +610,14 @@
 <div class="modal-overlay" id="modal-add-materiel">
   <div class="modal">
     <div class="modal-title">🔧 Ajouter du matériel</div>
+    <div class="upload-zone mb-2" id="mat-upload-zone" onclick="document.getElementById('mat-photo-input').click()" style="padding:1.25rem">
+      <input type="file" id="mat-photo-input" accept="image/*" onchange="handleMatPhoto(this,'mat')">
+      <div id="mat-photo-preview" class="hidden mb-1"><img id="mat-photo-img" style="width:100%;height:100px;object-fit:cover;border-radius:var(--rs)"/></div>
+      <div id="mat-upload-label">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">📷</div>
+        <div style="font-size:13px;font-weight:600">Photo du matériel (optionnel)</div>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group"><label>Nom *</label><input type="text" id="mat-nom" placeholder="ex : Ciseaux adaptés droitier"/></div>
       <div class="form-group"><label>Catégorie *</label>
@@ -631,7 +639,7 @@
       </div>
     </div>
     <div class="flex gap-1 justify-between mt-2">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-materiel')">Annuler</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-materiel');resetMatForm()">Annuler</button>
       <button class="btn btn-primary" onclick="saveMateriel()">Enregistrer</button>
     </div>
   </div>
@@ -641,6 +649,14 @@
 <div class="modal-overlay" id="modal-add-aide">
   <div class="modal">
     <div class="modal-title">🤝 Ajouter une aide</div>
+    <div class="upload-zone mb-2" id="aide-upload-zone" onclick="document.getElementById('aide-photo-input').click()" style="padding:1.25rem">
+      <input type="file" id="aide-photo-input" accept="image/*" onchange="handleMatPhoto(this,'aide')">
+      <div id="aide-photo-preview" class="hidden mb-1"><img id="aide-photo-img" style="width:100%;height:100px;object-fit:cover;border-radius:var(--rs)"/></div>
+      <div id="aide-upload-label">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">📷</div>
+        <div style="font-size:13px;font-weight:600">Photo de l'aide (optionnel)</div>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group"><label>Nom *</label><input type="text" id="aide-nom" placeholder="ex : AVS présente le matin"/></div>
       <div class="form-group"><label>Catégorie *</label>
@@ -662,7 +678,7 @@
       </div>
     </div>
     <div class="flex gap-1 justify-between mt-2">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-aide')">Annuler</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-aide');resetAideForm()">Annuler</button>
       <button class="btn btn-primary" onclick="saveAide()">Enregistrer</button>
     </div>
   </div>
@@ -1616,15 +1632,16 @@ function renderMaterielList(){
   list.innerHTML = Object.entries(groups).map(([cat,items])=>`
     <div class="card mb-2">
       <div style="font-weight:700;font-size:13px;color:var(--c-${matCatColors[cat]||'teal'}-d);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">${matCatLabels[cat]||cat} <span style="font-weight:400;color:var(--text-l)">(${items.length})</span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem">
-        ${items.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:var(--rs);background:${m.disponible?'var(--c-'+matCatColors[cat]+'-l)':'var(--bg)'};border:1px solid var(--border)">
-          <div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem">
+        ${items.map(m=>`<div style="border-radius:var(--rs);border:1px solid var(--border);overflow:hidden;background:${m.disponible?'var(--c-'+matCatColors[cat]+'-l)':'var(--bg)'}">
+          ${m.photo_url?`<img src="${m.photo_url}" style="width:100%;height:90px;object-fit:cover;display:block">`:`<div style="height:90px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.75rem">🔧</div>`}
+          <div style="padding:.5rem .75rem">
             <div style="font-size:13px;font-weight:600;${!m.disponible?'color:var(--text-l);text-decoration:line-through':''}">${m.nom}</div>
-            ${m.description?`<div style="font-size:11px;color:var(--text-m)">${m.description}</div>`:''}
-          </div>
-          <div class="flex gap-1">
-            <button onclick="toggleDispoMateriel('${m.id}')" title="${m.disponible?'Marquer indisponible':'Marquer disponible'}" style="font-size:14px;background:none;border:none;cursor:pointer">${m.disponible?'✅':'⭕'}</button>
-            <button onclick="deleteMateriel('${m.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--text-l)">✕</button>
+            ${m.description?`<div style="font-size:11px;color:var(--text-m);margin-top:2px">${m.description}</div>`:''}
+            <div class="flex gap-1 mt-1">
+              <button onclick="toggleDispoMateriel('${m.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;padding:0">${m.disponible?'✅ Dispo':'⭕ Indispo'}</button>
+              <button onclick="deleteMateriel('${m.id}')" style="font-size:11px;background:none;border:none;cursor:pointer;color:var(--text-l);margin-left:auto">✕</button>
+            </div>
           </div>
         </div>`).join('')}
       </div>
@@ -1639,26 +1656,75 @@ function renderAidesList(){
   list.innerHTML = Object.entries(groups).map(([cat,items])=>`
     <div class="card mb-2">
       <div style="font-weight:700;font-size:13px;color:var(--c-${aideCatColors[cat]||'coral'}-d);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">${aideCatLabels[cat]||cat} <span style="font-weight:400;color:var(--text-l)">(${items.length})</span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem">
-        ${items.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:var(--rs);background:${a.disponible?'var(--c-'+aideCatColors[cat]+'-l)':'var(--bg)'};border:1px solid var(--border)">
-          <div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem">
+        ${items.map(a=>`<div style="border-radius:var(--rs);border:1px solid var(--border);overflow:hidden;background:${a.disponible?'var(--c-'+aideCatColors[cat]+'-l)':'var(--bg)'}">
+          ${a.photo_url?`<img src="${a.photo_url}" style="width:100%;height:90px;object-fit:cover;display:block">`:`<div style="height:90px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.75rem">🤝</div>`}
+          <div style="padding:.5rem .75rem">
             <div style="font-size:13px;font-weight:600;${!a.disponible?'color:var(--text-l);text-decoration:line-through':''}">${a.nom}</div>
-            ${a.description?`<div style="font-size:11px;color:var(--text-m)">${a.description}</div>`:''}
-          </div>
-          <div class="flex gap-1">
-            <button onclick="toggleDispoAide('${a.id}')" title="${a.disponible?'Marquer indisponible':'Marquer disponible'}" style="font-size:14px;background:none;border:none;cursor:pointer">${a.disponible?'✅':'⭕'}</button>
-            <button onclick="deleteAide('${a.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--text-l)">✕</button>
+            ${a.description?`<div style="font-size:11px;color:var(--text-m);margin-top:2px">${a.description}</div>`:''}
+            <div class="flex gap-1 mt-1">
+              <button onclick="toggleDispoAide('${a.id}')" style="font-size:12px;background:none;border:none;cursor:pointer;padding:0">${a.disponible?'✅ Dispo':'⭕ Indispo'}</button>
+              <button onclick="deleteAide('${a.id}')" style="font-size:11px;background:none;border:none;cursor:pointer;color:var(--text-l);margin-left:auto">✕</button>
+            </div>
           </div>
         </div>`).join('')}
       </div>
     </div>`).join('');
 }
 
+// Photo matériel/aide
+let currentMatPhoto = null;
+let currentAidePhoto = null;
+
+function handleMatPhoto(input, type){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    if(type==='mat'){
+      currentMatPhoto = data;
+      document.getElementById('mat-photo-img').src = data;
+      document.getElementById('mat-photo-preview').classList.remove('hidden');
+      document.getElementById('mat-upload-label').classList.add('hidden');
+    } else {
+      currentAidePhoto = data;
+      document.getElementById('aide-photo-img').src = data;
+      document.getElementById('aide-photo-preview').classList.remove('hidden');
+      document.getElementById('aide-upload-label').classList.add('hidden');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetMatForm(){
+  currentMatPhoto=null;
+  document.getElementById('mat-photo-preview').classList.add('hidden');
+  document.getElementById('mat-upload-label').classList.remove('hidden');
+  document.getElementById('mat-photo-input').value='';
+}
+function resetAideForm(){
+  currentAidePhoto=null;
+  document.getElementById('aide-photo-preview').classList.add('hidden');
+  document.getElementById('aide-upload-label').classList.remove('hidden');
+  document.getElementById('aide-photo-input').value='';
+}
+
+async function uploadMatPhoto(imageData, prefix){
+  const compressed = await compressImage(imageData, 600, 0.75);
+  const blob = await(await fetch(compressed)).blob();
+  const fileName = `${prefix}-${Date.now()}.jpg`;
+  const {data:up} = await sb.storage.from('materiel-photos').upload(fileName, blob, {contentType:'image/jpeg'});
+  if(up){ const {data:url} = sb.storage.from('materiel-photos').getPublicUrl(fileName); return url.publicUrl; }
+  return null;
+}
+
 async function saveMateriel(){
   const nom=document.getElementById('mat-nom').value.trim();
   const cat=document.getElementById('mat-cat').value;
   if(!nom||!cat){toast('Merci de renseigner le nom et la catégorie.');return;}
-  const row={nom,categorie:cat,description:document.getElementById('mat-desc').value.trim(),disponible:document.getElementById('mat-dispo').checked};
+  let photo_url = null;
+  if(currentMatPhoto) photo_url = await uploadMatPhoto(currentMatPhoto, 'mat');
+  const row={nom,categorie:cat,description:document.getElementById('mat-desc').value.trim(),disponible:document.getElementById('mat-dispo').checked,photo_url};
   const {data,error}=await sb.from('materiel').insert([row]).select();
   if(error){toast('Erreur : '+error.message,5000);return;}
   materiel.push(data[0]);
@@ -1669,6 +1735,7 @@ async function saveMateriel(){
   ['mat-nom','mat-desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('mat-cat').value='';
   document.getElementById('mat-dispo').checked=true;
+  resetMatForm();
   toast('✅ Matériel ajouté !');
 }
 
@@ -1676,7 +1743,9 @@ async function saveAide(){
   const nom=document.getElementById('aide-nom').value.trim();
   const cat=document.getElementById('aide-cat').value;
   if(!nom||!cat){toast('Merci de renseigner le nom et la catégorie.');return;}
-  const row={nom,categorie:cat,description:document.getElementById('aide-desc').value.trim(),disponible:document.getElementById('aide-dispo').checked};
+  let photo_url = null;
+  if(currentAidePhoto) photo_url = await uploadMatPhoto(currentAidePhoto, 'aide');
+  const row={nom,categorie:cat,description:document.getElementById('aide-desc').value.trim(),disponible:document.getElementById('aide-dispo').checked,photo_url};
   const {data,error}=await sb.from('aides').insert([row]).select();
   if(error){toast('Erreur : '+error.message,5000);return;}
   aides.push(data[0]);
@@ -1687,6 +1756,7 @@ async function saveAide(){
   ['aide-nom','aide-desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('aide-cat').value='';
   document.getElementById('aide-dispo').checked=true;
+  resetAideForm();
   toast('✅ Aide ajoutée !');
 }
 
