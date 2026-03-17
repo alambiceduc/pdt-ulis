@@ -165,16 +165,22 @@
         <button class="btn btn-primary" onclick="openModal('modal-add-atelier')">+ Ajouter un atelier</button>
       </div>
     </div>
-    <div class="card mb-3" style="padding:.85rem 1.25rem">
+    <div class="card mb-2" style="padding:.85rem 1.25rem">
       <div class="flex gap-1 flex-wrap items-center">
         <span class="text-sm text-mid" style="margin-right:4px">Filtrer :</span>
         <button class="btn btn-sm btn-secondary filter-btn active" data-domain="all" onclick="setFilter(this)">Tous</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Mathématiques" onclick="setFilter(this)">Maths</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Lecture / Langage" onclick="setFilter(this)">Lecture</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Motricité fine" onclick="setFilter(this)">Motricité</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Autonomie" onclick="setFilter(this)">Autonomie</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-domain="Socio-émotionnel" onclick="setFilter(this)">Socio-émotionnel</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__français__" onclick="setFilter(this)">Français</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__maths__" onclick="setFilter(this)">Maths</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__disciplines__" onclick="setFilter(this)">Autres disciplines</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__transversal__" onclick="setFilter(this)">Transversal ULIS</button>
       </div>
+    </div>
+    <div class="card mb-3" style="padding:.75rem 1.25rem;cursor:pointer;border-style:dashed" onclick="toggleSynthese()">
+      <div class="flex items-center justify-between">
+        <div style="font-weight:700;font-size:14px">📊 Synthèse de ma bibliothèque — où me manque-t-il des ateliers ?</div>
+        <span id="synthese-chevron" style="color:var(--text-m)">▼</span>
+      </div>
+      <div id="synthese-content" class="hidden" style="margin-top:1rem" onclick="event.stopPropagation()"></div>
     </div>
     <div class="grid-3" id="ateliers-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
   </div>
@@ -270,10 +276,33 @@
         <div class="form-group"><label>Domaine *</label>
           <select id="atelier-domain">
             <option value="">— Choisir —</option>
-            <option>Mathématiques</option><option>Lecture / Langage</option>
-            <option>Motricité fine</option><option>Autonomie</option>
-            <option>Socio-émotionnel</option><option>Sciences / Découverte</option>
-            <option>Arts / Créativité</option><option>Vie pratique</option>
+            <optgroup label="Français">
+            <option>Lecture / Compréhension</option>
+            <option>Production d'écrits / Écriture</option>
+            <option>Étude de la langue</option>
+            <option>Langage oral</option>
+            <option>Calligraphie / Graphisme</option>
+            </optgroup>
+            <optgroup label="Mathématiques">
+            <option>Nombres et calculs</option>
+            <option>Grandeurs et mesures</option>
+            <option>Espace et géométrie</option>
+            <option>Résolution de problèmes</option>
+            </optgroup>
+            <optgroup label="Autres disciplines">
+            <option>Sciences / Découverte du monde</option>
+            <option>Arts / Créativité</option>
+            <option>Éducation musicale</option>
+            <option>Éducation physique</option>
+            </optgroup>
+            <optgroup label="Compétences transversales ULIS">
+            <option>Autonomie</option>
+            <option>Motricité fine</option>
+            <option>Motricité globale</option>
+            <option>Socio-émotionnel</option>
+            <option>Mémoire et attention</option>
+            <option>Vie pratique</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -377,10 +406,33 @@
       <div class="form-group"><label>Domaine *</label>
         <select id="edit-atelier-domain">
           <option value="">— Choisir —</option>
-          <option>Mathématiques</option><option>Lecture / Langage</option>
-          <option>Motricité fine</option><option>Autonomie</option>
-          <option>Socio-émotionnel</option><option>Sciences / Découverte</option>
-          <option>Arts / Créativité</option><option>Vie pratique</option>
+          <optgroup label="Français">
+          <option>Lecture / Compréhension</option>
+          <option>Production d'écrits / Écriture</option>
+          <option>Étude de la langue</option>
+          <option>Langage oral</option>
+          <option>Calligraphie / Graphisme</option>
+          </optgroup>
+          <optgroup label="Mathématiques">
+          <option>Nombres et calculs</option>
+          <option>Grandeurs et mesures</option>
+          <option>Espace et géométrie</option>
+          <option>Résolution de problèmes</option>
+          </optgroup>
+          <optgroup label="Autres disciplines">
+          <option>Sciences / Découverte du monde</option>
+          <option>Arts / Créativité</option>
+          <option>Éducation musicale</option>
+          <option>Éducation physique</option>
+          </optgroup>
+          <optgroup label="Compétences transversales ULIS">
+          <option>Autonomie</option>
+          <option>Motricité fine</option>
+          <option>Motricité globale</option>
+          <option>Socio-émotionnel</option>
+          <option>Mémoire et attention</option>
+          <option>Vie pratique</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -414,9 +466,89 @@ let selectedStudentId = null;
 let currentImageData = null;
 let activeFilter = 'all';
 
-const domainColors = {'Mathématiques':'blue','Lecture / Langage':'teal','Motricité fine':'amber','Autonomie':'green','Socio-émotionnel':'purple','Sciences / Découverte':'coral','Arts / Créativité':'purple','Vie pratique':'amber'};
+const DOMAINES = {
+  français: ['Lecture / Compréhension',"Production d'écrits / Écriture",'Étude de la langue','Langage oral','Calligraphie / Graphisme'],
+  maths: ['Nombres et calculs','Grandeurs et mesures','Espace et géométrie','Résolution de problèmes'],
+  disciplines: ['Sciences / Découverte du monde','Arts / Créativité','Éducation musicale','Éducation physique'],
+  transversal: ['Autonomie','Motricité fine','Motricité globale','Socio-émotionnel','Mémoire et attention','Vie pratique']
+};
+const ALL_DOMAINES = [...DOMAINES.français,...DOMAINES.maths,...DOMAINES.disciplines,...DOMAINES.transversal];
+const DOMAINE_LISTE_IA = ALL_DOMAINES.join(', ');
+
+const domainColors = {
+  'Lecture / Compréhension':'teal',"Production d'écrits / Écriture":'teal','Étude de la langue':'teal','Langage oral':'teal','Calligraphie / Graphisme':'teal',
+  'Nombres et calculs':'blue','Grandeurs et mesures':'blue','Espace et géométrie':'blue','Résolution de problèmes':'blue',
+  'Sciences / Découverte du monde':'coral','Arts / Créativité':'pink','Éducation musicale':'pink','Éducation physique':'green',
+  'Autonomie':'green','Motricité fine':'amber','Motricité globale':'amber','Socio-émotionnel':'purple','Mémoire et attention':'purple','Vie pratique':'amber'
+};
 const avatarColors = ['teal','blue','purple','coral','amber','green'];
-const domainHex = {'Mathématiques':'#378ADD','Lecture / Langage':'#1D9E75','Motricité fine':'#EF9F27','Autonomie':'#639922','Socio-émotionnel':'#7F77DD','Sciences / Découverte':'#D85A30','Arts / Créativité':'#D4537E','Vie pratique':'#BA7517'};
+const domainHex = {
+  'Lecture / Compréhension':'#1D9E75',"Production d'écrits / Écriture":'#0F6E56','Étude de la langue':'#5DCAA5','Langage oral':'#085041','Calligraphie / Graphisme':'#9FE1CB',
+  'Nombres et calculs':'#378ADD','Grandeurs et mesures':'#185FA5','Espace et géométrie':'#85B7EB','Résolution de problèmes':'#0C447C',
+  'Sciences / Découverte du monde':'#D85A30','Arts / Créativité':'#D4537E','Éducation musicale':'#ED93B1','Éducation physique':'#639922',
+  'Autonomie':'#3B6D11','Motricité fine':'#EF9F27','Motricité globale':'#BA7517','Socio-émotionnel':'#7F77DD','Mémoire et attention':'#534AB7','Vie pratique':'#854F0B'
+};
+
+const groupColors = {français:'#1D9E75', maths:'#378ADD', disciplines:'#D85A30', transversal:'#7F77DD'};
+const groupNames = {français:'Français', maths:'Mathématiques', disciplines:'Autres disciplines', transversal:'Transversal ULIS'};
+
+function toggleSynthese(){
+  const c=document.getElementById('synthese-content');
+  const ch=document.getElementById('synthese-chevron');
+  if(c.classList.contains('hidden')){
+    c.classList.remove('hidden');
+    ch.textContent='▲';
+    renderSynthese();
+  } else {
+    c.classList.add('hidden');
+    ch.textContent='▼';
+  }
+}
+
+function renderSynthese(){
+  const content=document.getElementById('synthese-content');
+  const total=ateliers.length;
+  if(!total){content.innerHTML='<div class="text-sm text-mid">Aucun atelier dans la bibliothèque.</div>';return;}
+
+  const countByDomain={};
+  ateliers.forEach(a=>{countByDomain[a.domain]=(countByDomain[a.domain]||0)+1;});
+
+  const groups = Object.entries(DOMAINES);
+  const maxCount = Math.max(...ALL_DOMAINES.map(d=>countByDomain[d]||0), 1);
+
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">
+      ${groups.map(([key,domains])=>{
+        const groupTotal=domains.reduce((s,d)=>s+(countByDomain[d]||0),0);
+        const color=groupColors[key];
+        return`<div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden">
+          <div style="background:${color}22;padding:.6rem .85rem;border-bottom:1px solid var(--border)">
+            <div style="font-weight:700;font-size:13px;color:${color}">${groupNames[key]}</div>
+            <div style="font-size:11px;color:var(--text-m)">${groupTotal} atelier${groupTotal>1?'s':''}</div>
+          </div>
+          <div style="padding:.6rem .85rem">
+            ${domains.map(d=>{
+              const n=countByDomain[d]||0;
+              const pct=Math.round(n/maxCount*100);
+              const manque=n===0;
+              return`<div style="margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+                  <span style="color:${manque?'var(--c-coral-d)':'var(--text)'}${manque?';font-weight:700':''}">${manque?'⚠ ':''}${d}</span>
+                  <span style="font-weight:700;color:${manque?'var(--c-coral-d)':color}">${n}</span>
+                </div>
+                <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${manque?'var(--c-coral)':color};border-radius:3px"></div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:.85rem;font-size:12px;color:var(--text-m)">
+      ${ALL_DOMAINES.filter(d=>!countByDomain[d]).length} domaine${ALL_DOMAINES.filter(d=>!countByDomain[d]).length>1?'s':''} sans atelier · Total : ${total} atelier${total>1?'s':''}
+    </div>`;
+}
 
 function toast(msg, d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -466,7 +598,12 @@ function setFilter(btn){
 // ---- ATELIERS ----
 function renderAteliers(){
   const grid=document.getElementById('ateliers-grid');
-  const filtered=activeFilter==='all'?ateliers:ateliers.filter(a=>a.domain===activeFilter);
+  let filtered=ateliers;
+  if(activeFilter==='__français__') filtered=ateliers.filter(a=>DOMAINES.français.includes(a.domain));
+  else if(activeFilter==='__maths__') filtered=ateliers.filter(a=>DOMAINES.maths.includes(a.domain));
+  else if(activeFilter==='__disciplines__') filtered=ateliers.filter(a=>DOMAINES.disciplines.includes(a.domain));
+  else if(activeFilter==='__transversal__') filtered=ateliers.filter(a=>DOMAINES.transversal.includes(a.domain));
+  else if(activeFilter!=='all') filtered=ateliers.filter(a=>a.domain===activeFilter);
   if(!filtered.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎲</div><div>Aucun atelier${activeFilter!=='all'?' dans ce domaine':''}.</div></div>`;return;}
   grid.innerHTML=filtered.map(a=>`
     <div class="atelier-card">
@@ -620,7 +757,7 @@ async function analyzeWithAI(imageData){
         {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
         {type:'text',text:`Tu es expert en pédagogie adaptée ULIS. Analyse cette photo d'un atelier ou jeu pédagogique. ${contexte}
 Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
-{"titre":"Nom court (max 6 mots)","domaine":"Un seul parmi : Mathématiques, Lecture / Langage, Motricité fine, Autonomie, Socio-émotionnel, Sciences / Découverte, Arts / Créativité, Vie pratique","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaîne vide)"}`}
+{"titre":"Nom court (max 6 mots)","domaine":"${DOMAINE_LISTE_IA}","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaîne vide)"}`}
       ]}]})
     });
     const data=await response.json();
@@ -1038,7 +1175,7 @@ async function handleBatchUpload(input) {
         body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
           {type:'text', text:`Tu es expert en pédagogie ULIS. Analyse cette photo d'atelier. UNIQUEMENT en JSON valide sans backticks :
-{"titre":"Nom court (max 6 mots)","domaine":"Un seul parmi : Mathématiques, Lecture / Langage, Motricité fine, Autonomie, Socio-émotionnel, Sciences / Découverte, Arts / Créativité, Vie pratique","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
+{"titre":"Nom court (max 6 mots)","domaine":"${DOMAINE_LISTE_IA}","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
         ]}]})
       });
       const data = await response.json();
@@ -1073,7 +1210,7 @@ function renderBatchItem(i, status) {
           status==='error' ? `<div style="color:var(--c-coral-d);font-size:13px">Erreur d'analyse</div>` :
           `<input type="text" value="${item.data.titre||''}" onchange="batchQueue[${i}].data.titre=this.value" style="font-weight:700;font-size:13px;padding:3px 6px;margin-bottom:4px;width:100%">
           <select onchange="batchQueue[${i}].data.domaine=this.value" style="font-size:12px;padding:3px 6px;width:100%">
-            ${['Mathématiques','Lecture / Langage','Motricité fine','Autonomie','Socio-émotionnel','Sciences / Découverte','Arts / Créativité','Vie pratique'].map(d=>`<option${item.data.domaine===d?' selected':''}>${d}</option>`).join('')}
+            ${['Mathématiques','Lecture / Langage','Motricité fine','Autonomie','Socio-émotionnel','Sciences / Découverte',"Arts / Créativité","Production d'écrits / Écriture",'Vie pratique'].map(d=>`<option${item.data.domaine===d?' selected':''}>${d}</option>`).join('')}
           </select>
           <div style="font-size:11px;color:var(--text-m);margin-top:4px">${item.data.objectif||''}</div>`
         }
