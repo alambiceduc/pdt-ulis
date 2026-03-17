@@ -364,6 +364,44 @@
   </div>
 </div>
 
+<!-- MODAL modifier atelier -->
+<div class="modal-overlay" id="modal-edit-atelier">
+  <div class="modal">
+    <div class="modal-title">✏️ Modifier l'atelier</div>
+    <input type="hidden" id="edit-atelier-id">
+    <div class="mb-2">
+      <img id="edit-atelier-img-preview" class="hidden" style="width:100%;height:140px;object-fit:cover;border-radius:var(--rs);margin-bottom:.5rem"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom de l'atelier *</label><input type="text" id="edit-atelier-title"/></div>
+      <div class="form-group"><label>Domaine *</label>
+        <select id="edit-atelier-domain">
+          <option value="">— Choisir —</option>
+          <option>Mathématiques</option><option>Lecture / Langage</option>
+          <option>Motricité fine</option><option>Autonomie</option>
+          <option>Socio-émotionnel</option><option>Sciences / Découverte</option>
+          <option>Arts / Créativité</option><option>Vie pratique</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Objectif pédagogique</label><textarea id="edit-atelier-obj" rows="2"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="edit-atelier-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Durée estimée</label>
+        <select id="edit-atelier-duree">
+          <option value="10">10 min</option><option value="15">15 min</option>
+          <option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="edit-atelier-notes"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-atelier')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEditAtelier()">Enregistrer les modifications</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -442,7 +480,10 @@ function renderAteliers(){
           ${a.duree?`<span class="tag" style="background:var(--bg);color:var(--text-m)">⏱ ${a.duree} min</span>`:''}
         </div>
         ${a.notes?`<div class="text-xs text-mid mt-1">💡 ${a.notes}</div>`:''}
-        <div class="mt-1"><button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px" onclick="deleteAtelier('${a.id}')">Supprimer</button></div>
+        <div class="mt-1 flex gap-1">
+          <button class="btn btn-sm" style="color:var(--c-blue-d);background:var(--c-blue-l);border:none;font-size:12px" onclick="openEditAtelier('${a.id}')">✏️ Modifier</button>
+          <button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px" onclick="deleteAtelier('${a.id}')">Supprimer</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -452,6 +493,44 @@ async function deleteAtelier(id){
   await sb.from('ateliers').delete().eq('id',id);
   ateliers=ateliers.filter(a=>a.id!==id);
   updateStats();renderAteliers();toast('Atelier supprimé.');
+}
+
+function openEditAtelier(id){
+  const a = ateliers.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('edit-atelier-id').value = a.id;
+  document.getElementById('edit-atelier-title').value = a.title||'';
+  document.getElementById('edit-atelier-domain').value = a.domain||'';
+  document.getElementById('edit-atelier-obj').value = a.objectif||'';
+  document.getElementById('edit-atelier-levels').value = (a.levels||[]).join(', ');
+  document.getElementById('edit-atelier-duree').value = a.duree||20;
+  document.getElementById('edit-atelier-notes').value = a.notes||'';
+  const imgPreview = document.getElementById('edit-atelier-img-preview');
+  if(a.image_url){ imgPreview.src=a.image_url; imgPreview.classList.remove('hidden'); }
+  else { imgPreview.classList.add('hidden'); }
+  openModal('modal-edit-atelier');
+}
+
+async function saveEditAtelier(){
+  const id = document.getElementById('edit-atelier-id').value;
+  const title = document.getElementById('edit-atelier-title').value.trim();
+  const domain = document.getElementById('edit-atelier-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le nom et le domaine.');return;}
+  const updates = {
+    title,
+    domain,
+    objectif: document.getElementById('edit-atelier-obj').value.trim(),
+    levels: document.getElementById('edit-atelier-levels').value.split(',').map(s=>s.trim()).filter(Boolean),
+    duree: parseInt(document.getElementById('edit-atelier-duree').value),
+    notes: document.getElementById('edit-atelier-notes').value.trim()
+  };
+  const {error} = await sb.from('ateliers').update(updates).eq('id',id);
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  const idx = ateliers.findIndex(a=>a.id===id);
+  if(idx>=0) ateliers[idx] = {...ateliers[idx], ...updates};
+  closeModal('modal-edit-atelier');
+  renderAteliers();
+  toast('✅ Atelier mis à jour !');
 }
 
 // ---- UPLOAD IMAGE ----
@@ -535,7 +614,7 @@ async function analyzeWithAI(imageData){
     const titreActuel = document.getElementById('atelier-title').value.trim();
     const domaineActuel = document.getElementById('atelier-domain').value;
     const contexte = titreActuel ? `Le titre saisi est "${titreActuel}". ${domaineActuel ? `Le domaine est "${domaineActuel}".` : ''} Tiens-en compte pour affiner l'objectif et les niveaux.` : '';
-    const response=await fetch('/api/ai',{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
@@ -692,7 +771,7 @@ async function generatePDT(){
   const prevContext=prevPdts.length?'\nPDT précédents :\n'+prevPdts.map(p=>`Semaine ${p.semaine}: ${(p.activities||[]).map(a=>`${a.titre} (${a.status==='done'?'réussi':a.status==='partial'?'partiel':'non fait'})`).join(', ')}`).join('\n'):'';
 
   try{
-    const response=await fetch('/api/ai',{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté.
 
@@ -859,7 +938,7 @@ async function handlePIUpload(input) {
       ];
     }
 
-    const response = await fetch('/api/ai', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user', content:messageContent}]})
     });
@@ -954,7 +1033,7 @@ async function handleBatchUpload(input) {
     try {
       const base64 = await fileToBase64(item.file);
       const mediaType = item.file.type;
-      const response = await fetch('/api/ai', {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
           {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
