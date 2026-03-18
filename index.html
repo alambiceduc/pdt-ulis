@@ -97,6 +97,23 @@
   .db-stat{border-left:4px solid var(--c);}
   .filter-btn.active{background:var(--c-teal-l);color:var(--c-teal-d);border-color:var(--c-teal);}
   @media(max-width:700px){.sidebar{display:none;}.main{padding:1rem;}.form-row{grid-template-columns:1fr;}}
+
+@media print {
+  body { margin: 0; padding: 0; }
+  .nav-sidebar, .btn, select, .pdt-activity select,
+  #pdt-params, .page-title, .page-sub,
+  .flex.justify-between.items-center.mb-2 button { display: none !important; }
+  .section { padding: 0 !important; }
+  .card.card-lg { box-shadow: none !important; border: none !important; padding: .5rem !important; }
+  .pdt-activity { break-inside: avoid; page-break-inside: avoid; padding: .3rem .5rem !important; margin-bottom: .3rem !important; }
+  .pdt-num { width: 22px !important; height: 22px !important; font-size: 11px !important; flex-shrink: 0; }
+  .pdt-title { font-size: 12px !important; font-weight: 700; }
+  .pdt-obj { font-size: 11px !important; }
+  .text-xs { font-size: 10px !important; }
+  #section-generer { display: block !important; padding: 0 !important; }
+  #pdt-result { width: 100%; }
+  @page { size: A4 portrait; margin: 10mm; }
+}
 </style>
 </head>
 <body>
@@ -608,7 +625,7 @@
 <!-- MODAL ajouter ressource -->
 <div class="modal-overlay" id="modal-add-ressource">
   <div class="modal">
-    <div class="modal-title">📦 Ajouter un outil</div>
+    <div class="modal-title">⭐ Ajouter un outil</div>
     <div class="upload-zone mb-2" id="ressource-upload-zone" onclick="document.getElementById('ressource-photo-input').click()" style="padding:1.25rem">
       <input type="file" id="ressource-photo-input" accept="image/*" onchange="handleMatPhoto(this,'ressource')">
       <div id="ressource-photo-preview" class="hidden mb-1"><img id="ressource-photo-img" style="width:100%;height:100px;object-fit:cover;border-radius:var(--rs)"/></div>
@@ -803,7 +820,7 @@ function renderAteliers(){
   if(!filtered.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎲</div><div>Aucun atelier${activeFilter!=='all'?' dans ce domaine':''}.</div></div>`;return;}
   grid.innerHTML=filtered.map(a=>`
     <div class="atelier-card">
-      <div class="atelier-img">${a.image_url?`<img src="${a.image_url}" alt="${a.title}">`:'<span style="font-size:2rem">🎮</span>'}</div>
+      <div class="atelier-img">${a.image_url?`<img src="${a.image_url}" alt="${a.title}">`:'<span style="font-size:2rem">🧩</span>'}</div>
       <div class="atelier-body">
         <div class="atelier-title">${a.title}</div>
         <div class="atelier-obj">${a.objectif||'Objectif non renseigné'}</div>
@@ -1213,10 +1230,10 @@ function renderPDTResult(pdt){
         return`<div class="pdt-activity" style="${isFiche?'border-left:3px solid var(--c-blue);':''}">
           <div class="pdt-num" style="background:${isFiche?'var(--c-blue-l)':color+'22'};color:${isFiche?'var(--c-blue-d)':color}">${a.ordre||i+1}</div>
           <div class="pdt-content">
-            <div class="pdt-title">${isFiche?'📄 ':'🎮 '}${a.titre}</div>
+            <div class="pdt-title">${isFiche?'📄 ':'🧩 '}${a.titre}</div>
             <div class="pdt-obj">${a.pourquoi}</div>
             ${a.adaptation?`<div class="text-xs mt-1" style="color:var(--c-amber-d);background:var(--c-amber-l);padding:3px 8px;border-radius:4px;display:inline-block">💡 ${a.adaptation}</div>`:''}
-            ${(a.ressources&&a.ressources.length)?`<div class="mt-1">${a.ressources.map(r=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:10px;background:var(--c-teal-l);color:var(--c-teal-d);margin:2px;font-weight:600">📦 ${r}</span>`).join('')}</div>`:''}
+            ${(a.ressources&&a.ressources.length)?`<div class="mt-1">${a.ressources.map(r=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:10px;background:var(--c-teal-l);color:var(--c-teal-d);margin:2px;font-weight:600">⭐ ${r}</span>`).join('')}</div>`:''}
             ${ficheObj&&ficheObj.file_url?`<div class="mt-1"><a href="${ficheObj.file_url}" target="_blank" class="btn btn-sm" style="font-size:11px;color:var(--c-blue-d);background:var(--c-blue-l);border:none">🖨️ Imprimer la fiche</a></div>`:''}
           </div>
           <div style="margin-left:auto;flex-shrink:0">
@@ -1629,7 +1646,7 @@ async function saveRessource(){
   renderMaterielSynthese();
   ['ressource-nom','ressource-desc'].forEach(id=>document.getElementById(id).value='');
   resetRessourceForm();
-  toast('✅ Outil ajouté !');
+  toast('⭐ Outil ajouté !');
 }
 
 
