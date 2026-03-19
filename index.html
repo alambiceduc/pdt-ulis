@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDT ULIS — Plans de Travail</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap');
+  :root {
+    --c-teal:#1D9E75;--c-teal-l:#E1F5EE;--c-teal-m:#5DCAA5;--c-teal-d:#0F6E56;
+    --c-blue:#378ADD;--c-blue-l:#E6F1FB;--c-blue-m:#85B7EB;--c-blue-d:#185FA5;
+    --c-amber:#EF9F27;--c-amber-l:#FAEEDA;--c-amber-d:#854F0B;
+    --c-coral:#D85A30;--c-coral-l:#FAECE7;--c-coral-d:#993C1D;
+    --c-purple:#7F77DD;--c-purple-l:#EEEDFE;--c-purple-d:#3C3489;
+    --c-green:#639922;--c-green-l:#EAF3DE;--c-green-d:#3B6D11;
+    --bg:#F7F6F2;--card:#FFFFFF;--border:#E5E3DC;--border-s:#C8C6BC;
+    --text:#2C2C2A;--text-m:#5F5E5A;--text-l:#888780;
+    --r:12px;--rs:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:230px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .main{flex:1;padding:2rem;max-width:1100px;overflow-x:hidden;}
+  .logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border);}
+  .logo h1{font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--c-teal-d);line-height:1.2;}
+  .logo p{font-size:11px;color:var(--text-l);margin-top:2px;}
+  nav{padding:1rem 0;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:.65rem 1.25rem;font-size:14px;font-weight:500;color:var(--text-m);cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+  .nav-item:hover{background:var(--bg);color:var(--text);}
+  .nav-item.active{background:var(--c-teal-l);color:var(--c-teal-d);border-left-color:var(--c-teal);font-weight:600;}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;}
+  .nav-badge{margin-left:auto;background:var(--c-teal);color:white;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;}
+  .section{display:none;}.section.active{display:block;}
+  .page-title{font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:.3rem;}
+  .page-sub{color:var(--text-m);margin-bottom:1.75rem;font-size:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;}
+  .card-lg{padding:1.5rem;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+  .grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .btn-primary{background:var(--c-teal);color:white;}.btn-primary:hover{background:var(--c-teal-d);}
+  .btn-secondary{background:transparent;color:var(--text-m);border:1px solid var(--border-s);}.btn-secondary:hover{background:var(--bg);}
+  .btn-sm{padding:.35rem .8rem;font-size:13px;}
+  .btn-xl{padding:.85rem 1.75rem;font-size:15px;border-radius:var(--r);}
+  label{display:block;font-size:13px;font-weight:600;color:var(--text-m);margin-bottom:5px;}
+  input[type=text],textarea,select{width:100%;padding:.6rem .85rem;border:1px solid var(--border-s);border-radius:var(--rs);font-size:14px;font-family:'Nunito Sans',sans-serif;color:var(--text);background:white;outline:none;transition:border-color .15s;}
+  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--c-teal);}
+  textarea{resize:vertical;line-height:1.5;}
+  .form-group{margin-bottom:1rem;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .tag-teal{background:var(--c-teal-l);color:var(--c-teal-d);}
+  .tag-blue{background:var(--c-blue-l);color:var(--c-blue-d);}
+  .tag-amber{background:var(--c-amber-l);color:var(--c-amber-d);}
+  .tag-purple{background:var(--c-purple-l);color:var(--c-purple-d);}
+  .tag-coral{background:var(--c-coral-l);color:var(--c-coral-d);}
+  .tag-green{background:var(--c-green-l);color:var(--c-green-d);}
+  .upload-zone{border:2px dashed var(--border-s);border-radius:var(--r);padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--c-teal);background:var(--c-teal-l);}
+  .upload-zone input{display:none;}
+  .atelier-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s;}
+  .atelier-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);}
+  .atelier-img{width:100%;height:130px;object-fit:cover;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text-l);font-size:13px;}
+  .atelier-img img{width:100%;height:130px;object-fit:cover;}
+  .atelier-body{padding:.85rem;}
+  .atelier-title{font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;margin-bottom:5px;line-height:1.3;}
+  .atelier-obj{font-size:12px;color:var(--text-m);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .atelier-tags{display:flex;flex-wrap:wrap;gap:4px;}
+  .student-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;cursor:pointer;transition:all .15s;}
+  .student-card:hover{border-color:var(--c-teal-m);}
+  .student-card.selected{border-color:var(--c-teal);background:var(--c-teal-l);}
+  .student-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;margin-bottom:.6rem;}
+  .pdt-activity{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.9rem 1rem;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+  .pdt-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;font-family:'Nunito',sans-serif;flex-shrink:0;margin-top:2px;}
+  .pdt-content{flex:1;}
+  .pdt-title{font-weight:700;font-size:14px;margin-bottom:3px;}
+  .pdt-obj{font-size:12px;color:var(--text-m);}
+  .ai-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--c-teal);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:white;padding:.75rem 1.25rem;border-radius:var(--rs);font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;z-index:9999;max-width:320px;}
+  .toast.show{opacity:1;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:white;border-radius:var(--r);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:1.75rem;}
+  .modal-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:1.25rem;}
+  .empty{text-align:center;padding:3rem 1rem;color:var(--text-l);}
+  .empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+  .flex{display:flex;}.gap-1{gap:.5rem;}.gap-2{gap:1rem;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.flex-wrap{flex-wrap:wrap;}
+  .mb-1{margin-bottom:.5rem;}.mb-2{margin-bottom:1rem;}.mb-3{margin-bottom:1.5rem;}
+  .mt-1{margin-top:.5rem;}.mt-2{margin-top:1rem;}
+  .text-sm{font-size:13px;}.text-xs{font-size:12px;}.text-mid{color:var(--text-m);}.text-light{color:var(--text-l);}
+  .font-bold{font-family:'Nunito',sans-serif;font-weight:800;}
+  .w-full{width:100%;}.hidden{display:none!important;}
+  .db-stat{border-left:4px solid var(--c);}
+  .filter-btn.active,.level-btn.active{background:var(--c-teal-l);color:var(--c-teal-d);border-color:var(--c-teal);}
+  @media(max-width:700px){.sidebar{display:none;}.main{padding:1rem;}.form-row{grid-template-columns:1fr;}}
+
+@media print {
+  body { margin: 0; padding: 0; }
+
+  /* Mode bilan PDF */
+  body.printing-bilan .nav-sidebar,
+  body.printing-bilan .main > *:not(#modal-bilan-pdf),
+  body.printing-bilan .modal-overlay:not(#modal-bilan-pdf),
+  body.printing-bilan #modal-bilan-pdf > .modal > div:first-child { display: none !important; }
+  body.printing-bilan #modal-bilan-pdf { position:static !important; background:white !important; padding:0 !important; display:block !important; }
+  body.printing-bilan #modal-bilan-pdf > .modal { box-shadow:none !important; border:none !important; max-height:none !important; width:100% !important; max-width:100% !important; }
+  body.printing-bilan #bilan-print-zone { padding: 1cm !important; }
+
+  /* Mode PDT */
+  body:not(.printing-bilan) .nav-sidebar,
+  body:not(.printing-bilan) .btn,
+  body:not(.printing-bilan) select { display: none !important; }
+  body:not(.printing-bilan) .section { padding: 0 !important; }
+  body:not(.printing-bilan) .card.card-lg { box-shadow: none !important; border: none !important; padding: .5rem !important; }
+  body:not(.printing-bilan) .pdt-activity { break-inside: avoid; page-break-inside: avoid; padding: .3rem .5rem !important; margin-bottom: .3rem !important; }
+  body:not(.printing-bilan) #section-generer { display: block !important; padding: 0 !important; }
+  body:not(.printing-bilan) #pdt-result { width: 100%; }
+
+  @page { size: A4 portrait; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="logo">
+    <h1>PDT ULIS</h1>
+    <p>Plans de travail adaptés</p>
+  </div>
+  <nav>
+    <div class="nav-item active" onclick="showSection('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Tableau de bord
+    </div>
+    <div class="nav-item" onclick="showSection('ateliers',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Bibliothèque
+      <span class="nav-badge" id="badge-ateliers">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('eleves',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Élèves / PI
+      <span class="nav-badge" id="badge-eleves">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('fiches',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Fiches & Outils
+      <span class="nav-badge" id="badge-fiches">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('materiel',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Outils
+      <span class="nav-badge" id="badge-materiel">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('generer',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      PDT
+      <span class="nav-badge" id="badge-pdts">0</span>
+    </div>
+    <div class="nav-item" onclick="showSection('suivi',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Suivi compétences
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="section active" id="section-dashboard">
+    <div class="page-title">Bonjour 👋</div>
+    <div class="page-sub">Bienvenue dans votre espace de plans de travail ULIS</div>
+    <div class="grid-2 mb-3">
+      <div class="card" style="border-left:4px solid var(--c-teal)"><div class="text-sm text-mid mb-1">Ateliers</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-teal-d)" id="stat-ateliers">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-blue)"><div class="text-sm text-mid mb-1">Élèves suivis</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-blue-d)" id="stat-eleves">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-amber)"><div class="text-sm text-mid mb-1">PDT générés</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-amber-d)" id="stat-pdts">—</div></div>
+      <div class="card" style="border-left:4px solid var(--c-purple)"><div class="text-sm text-mid mb-1">Activités validées</div><div style="font-family:'Nunito';font-size:2rem;font-weight:800;color:var(--c-purple-d)" id="stat-done">—</div></div>
+    </div>
+    <div class="card">
+      <div class="font-bold mb-2" style="font-size:1rem">Comment ça marche ?</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-teal-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">📷</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">1 · Importer des ateliers</div><div class="text-sm text-mid">Photo + l'IA détecte automatiquement domaine, objectifs et niveaux</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">👤</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">2 · Saisir les PI</div><div class="text-sm text-mid">Profils, objectifs individualisés et adaptations de chaque élève</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-amber-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">🧠</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">3 · Générer le PDT</div><div class="text-sm text-mid">L'IA propose un plan adapté avec les ateliers disponibles</div></div>
+        <div style="text-align:center;padding:1rem"><div style="width:48px;height:48px;background:var(--c-purple-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:22px">📊</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">4 · Suivre les progrès</div><div class="text-sm text-mid">Tableau mis à jour à chaque PDT complété</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATELIERS -->
+  <div class="section" id="section-ateliers">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Bibliothèque d'ateliers</div><div class="page-sub">Importez vos photos — l'IA analyse et classe automatiquement</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" onclick="openModal('modal-batch-ateliers')">📦 Import en lot</button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-atelier')">+ Ajouter un atelier</button>
+      </div>
+    </div>
+    <div class="card mb-2" style="padding:.85rem 1.25rem">
+      <!-- Recherche -->
+      <div style="margin-bottom:.75rem">
+        <input type="text" id="atelier-search" placeholder="🔍 Rechercher un atelier…" oninput="renderAteliers()" style="width:100%;max-width:400px"/>
+      </div>
+      <!-- Filtre matière -->
+      <div class="flex gap-1 flex-wrap items-center" style="margin-bottom:.5rem">
+        <span class="text-xs text-mid" style="margin-right:2px;white-space:nowrap">Matière :</span>
+        <button class="btn btn-sm btn-secondary filter-btn active" data-domain="all" onclick="setFilter(this)">Toutes</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__français__" onclick="setFilter(this)">Français</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__maths__" onclick="setFilter(this)">Maths</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__disciplines__" onclick="setFilter(this)">Autres disciplines</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-domain="__transversal__" onclick="setFilter(this)">Transversal ULIS</button>
+      </div>
+      <!-- Filtre niveau -->
+      <div class="flex gap-1 flex-wrap items-center">
+        <span class="text-xs text-mid" style="margin-right:2px;white-space:nowrap">Niveau :</span>
+        <button class="btn btn-sm btn-secondary level-btn active" data-level="all" onclick="setLevelFilter(this)">Tous</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="GS" onclick="setLevelFilter(this)">GS</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="CP" onclick="setLevelFilter(this)">CP</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="CE1" onclick="setLevelFilter(this)">CE1</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="CE2" onclick="setLevelFilter(this)">CE2</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="CM1" onclick="setLevelFilter(this)">CM1</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="CM2" onclick="setLevelFilter(this)">CM2</button>
+        <button class="btn btn-sm btn-secondary level-btn" data-level="6e" onclick="setLevelFilter(this)">6e</button>
+      </div>
+    </div>
+    <div class="card mb-3" style="padding:.75rem 1.25rem;cursor:pointer;border-style:dashed" onclick="toggleSynthese()">
+      <div class="flex items-center justify-between">
+        <div style="font-weight:700;font-size:14px">📊 Synthèse de ma bibliothèque — où me manque-t-il des ateliers ?</div>
+        <span id="synthese-chevron" style="color:var(--text-m)">▼</span>
+      </div>
+      <div id="synthese-content" class="hidden" style="margin-top:1rem" onclick="event.stopPropagation()"></div>
+    </div>
+    <div class="grid-3" id="ateliers-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- ÉLÈVES -->
+  <div class="section" id="section-eleves">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Élèves & Projets Individualisés</div><div class="page-sub">Saisissez les profils et objectifs de chaque élève</div></div>
+      <button class="btn btn-primary" onclick="openModal('modal-add-eleve')">+ Ajouter un élève</button>
+    </div>
+    <div class="grid-2" id="eleves-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- FICHES & RESSOURCES -->
+  <div class="section" id="section-fiches">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Fiches & Ressources</div><div class="page-sub">Uploadez vos fiches existantes ou générez-en de nouvelles avec l'IA</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" onclick="openModal('modal-gen-fiche')">✨ Générer une fiche</button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-fiche')">+ Ajouter une fiche</button>
+      </div>
+    </div>
+    <div class="card mb-3" style="padding:.85rem 1.25rem">
+      <div class="flex gap-1 flex-wrap items-center">
+        <span class="text-sm text-mid" style="margin-right:4px">Type :</span>
+        <button class="btn btn-sm btn-secondary fiche-filter active" data-type="all" onclick="setFicheFilter(this)">Toutes</button>
+        <button class="btn btn-sm btn-secondary fiche-filter" data-type="upload" onclick="setFicheFilter(this)">📎 Uploadées</button>
+        <button class="btn btn-sm btn-secondary fiche-filter" data-type="generee" onclick="setFicheFilter(this)">✨ Générées</button>
+      </div>
+    </div>
+    <div class="grid-3" id="fiches-grid"><div class="empty" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- MATÉRIEL & AIDES -->
+  <div class="section" id="section-materiel">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Outils</div><div class="page-sub">Référencez le matériel, outils et aides disponibles dans votre classe</div></div>
+      <div class="flex gap-1">
+        <button class="btn btn-primary" onclick="openModal('modal-add-ressource')">+ Ajouter un outil</button>
+      </div>
+    </div>
+
+    <!-- Récap synthèse -->
+    <div class="card mb-3" style="cursor:pointer;border-style:dashed" onclick="toggleMaterielSynthese()">
+      <div class="flex items-center justify-between">
+        <div style="font-weight:700;font-size:14px">📊 Synthèse — outils référencés</div>
+        <span id="mat-synthese-chevron" style="color:var(--text-m)">▼</span>
+      </div>
+      <div id="mat-synthese-content" class="hidden mt-2" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <div id="ressources-list"></div>
+  </div>
+
+  <!-- PDT -->
+  <div class="section" id="section-generer">
+    <!-- VUE 1 : liste élèves -->
+    <div id="pdt-view-eleves">
+      <div class="flex justify-between items-center mb-1">
+        <div><div class="page-title">PDT</div><div class="page-sub">Plans de travail par élève</div></div>
+        <button class="btn btn-primary" onclick="showPDTGenerer()">+ Générer avec l'IA</button>
+      </div>
+      <div id="pdt-eleves-grid" style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem"></div>
+    </div>
+
+    <!-- VUE 2 : PDTs d'un élève -->
+    <div id="pdt-view-liste" class="hidden">
+      <div class="flex items-center gap-2 mb-3">
+        <button class="btn btn-secondary btn-sm" onclick="showPDTElevesGrid()">← Retour</button>
+        <div id="pdt-liste-title" class="font-bold" style="font-size:1.1rem"></div>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="showPDTGenererForCurrent()">+ Nouveau PDT</button>
+      </div>
+      <div id="pdt-liste-content"></div>
+    </div>
+
+    <!-- VUE 3 : générer un PDT -->
+    <div id="pdt-view-generer" class="hidden">
+      <div class="flex items-center gap-2 mb-3">
+        <button class="btn btn-secondary btn-sm" onclick="backFromGenerer()">← Retour</button>
+        <div class="font-bold" style="font-size:1.1rem">Générer un PDT avec l'IA</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem">
+        <div>
+          <div class="card card-lg mb-2">
+            <div class="font-bold mb-2" style="font-size:.95rem">1 · Choisir l'élève</div>
+            <div id="select-student-list"><div class="text-sm text-mid">Chargement...</div></div>
+          </div>
+          <div class="card card-lg mb-2">
+            <div class="font-bold mb-2" style="font-size:.95rem">2 · Paramètres</div>
+            <div class="form-group"><label>Semaine du</label><input type="text" id="pdt-semaine" placeholder="ex : 24 mars 2025"/></div>
+            <div class="form-group"><label>Nombre d'activités (5–12)</label><input type="text" id="pdt-nb" value="8"/></div>
+            <div class="form-group"><label>Consignes particulières (optionnel)</label><textarea id="pdt-consignes" rows="3" placeholder="Ex : focus sur les maths cette semaine..."></textarea></div>
+          </div>
+          <button class="btn btn-primary btn-xl w-full" onclick="generatePDT()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Générer avec l'IA
+          </button>
+        </div>
+        <div id="pdt-result">
+          <div class="card" style="height:100%;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;background:var(--bg)">
+            <div style="font-size:2.5rem;margin-bottom:1rem">📋</div>
+            <div class="text-mid" style="font-size:14px">Le plan de travail apparaîtra ici</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUIVI -->
+  <div class="section" id="section-suivi">
+    <div class="flex justify-between items-center mb-1">
+      <div><div class="page-title">Suivi des compétences</div><div class="page-sub">Tableau de bord mis à jour à chaque plan de travail</div></div>
+      <button id="btn-bilan-pdf" class="btn btn-primary hidden" onclick="genererBilanPDF()">📄 Générer bilan PDF</button>
+    </div>
+    <div class="card mb-2" style="padding:.85rem 1.25rem">
+      <div class="flex gap-2 items-center flex-wrap" style="margin-bottom:.75rem">
+        <label style="margin:0">Élève :</label>
+        <select id="suivi-eleve-select" onchange="renderSuivi()" style="width:auto"><option value="">— Choisir —</option></select>
+        <div class="flex gap-1 items-center" style="margin-left:auto">
+          <span style="width:10px;height:10px;background:var(--c-amber);border-radius:50%;display:inline-block"></span><span class="text-xs text-mid">En cours</span>
+          <span style="width:10px;height:10px;background:var(--c-blue-m);border-radius:50%;display:inline-block;margin-left:6px"></span><span class="text-xs text-mid">À retravailler</span>
+          <span style="width:10px;height:10px;background:var(--c-teal);border-radius:50%;display:inline-block;margin-left:6px"></span><span class="text-xs text-mid">Acquis</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+        <label style="margin:0;font-size:13px">Période :</label>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap" id="periode-presets">
+          <button class="btn btn-sm btn-secondary periode-btn active" data-p="all" onclick="selectPeriode(this,'all')">Tout</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="P1" onclick="selectPeriode(this,'P1')">P1</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="P2" onclick="selectPeriode(this,'P2')">P2</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="P3" onclick="selectPeriode(this,'P3')">P3</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="P4" onclick="selectPeriode(this,'P4')">P4</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="P5" onclick="selectPeriode(this,'P5')">P5</button>
+          <button class="btn btn-sm btn-secondary periode-btn" data-p="custom" onclick="selectPeriode(this,'custom')">Personnalisé…</button>
+        </div>
+        <div id="periode-custom-inputs" class="hidden" style="display:flex;gap:.5rem;align-items:center">
+          <input type="date" id="suivi-periode-debut" style="width:145px;font-size:12px"/>
+          <span style="color:var(--text-m)">→</span>
+          <input type="date" id="suivi-periode-fin" style="width:145px;font-size:12px"/>
+          <button class="btn btn-sm btn-primary" onclick="renderSuivi()">OK</button>
+        </div>
+      </div>
+    </div>
+    <div id="suivi-content"><div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève</div></div></div>
+  </div>
+
+</main>
+</div>
+
+
+<!-- MODAL BILAN PDF -->
+<div class="modal-overlay" id="modal-bilan-pdf" style="align-items:flex-start;padding-top:2rem">
+  <div class="modal" style="max-width:720px;width:100%;max-height:90vh;overflow-y:auto;padding:0">
+
+    <!-- En-tête modale (actions) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:white;z-index:10">
+      <div style="font-weight:700;font-size:1rem">📄 Bilan de période</div>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="imprimerBilan()" class="btn btn-primary btn-sm">🖨️ Imprimer / PDF</button>
+        <button onclick="closeModal('modal-bilan-pdf')" class="btn btn-secondary btn-sm">✕ Fermer</button>
+      </div>
+    </div>
+
+    <!-- Contenu imprimable -->
+    <div id="bilan-print-zone" style="padding:2rem">
+
+      <!-- En-tête -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem">
+        <div>
+          <div style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Bilan de compétences — ULIS</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#111" id="bilan-eleve-nom"></div>
+          <div style="font-size:13px;color:#6b7280;margin-top:.25rem">Période : <span id="bilan-periode" style="font-weight:600;color:#374151"></span></div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#9ca3af">
+          <div style="font-weight:700;font-size:1.1rem;color:#1D9E75">PDT ULIS</div>
+          <div>pdt.ulisbox.fr</div>
+        </div>
+      </div>
+
+      <!-- Commentaire IA -->
+      <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:1rem 1.25rem;border-radius:8px;margin-bottom:1.75rem">
+        <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Commentaire bilan</div>
+        <div id="bilan-commentaire-ia" style="font-size:13px;color:#374151;line-height:1.7;white-space:pre-wrap"></div>
+      </div>
+
+      <!-- Tableau compétences -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Compétences travaillées</div>
+        <div id="bilan-competences-content"></div>
+      </div>
+
+      <!-- Légende -->
+      <div style="display:flex;gap:1rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e7eb">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px"><span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>Acquis</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>En cours</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>Non acquis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL modifier activité PDT -->
+<div class="modal-overlay" id="modal-edit-activite">
+  <div class="modal" style="max-width:680px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div class="modal-title" style="margin:0">✏️ Modifier l'activité</div>
+      <button onclick="closeModal('modal-edit-activite')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-m)">✕</button>
+    </div>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:.35rem;margin-bottom:1rem;border-bottom:2px solid var(--border);padding-bottom:.5rem">
+      <button class="edit-act-tab active" data-tab="manuel" onclick="switchEditTab(this,'manuel')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;padding:4px 12px;border-radius:8px;color:var(--c-teal-d);background:var(--c-teal-l)">✍️ Manuel</button>
+      <button class="edit-act-tab" data-tab="ateliers" onclick="switchEditTab(this,'ateliers')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;padding:4px 12px;border-radius:8px;color:var(--text-m)">🧩 Ateliers</button>
+      <button class="edit-act-tab" data-tab="fiches" onclick="switchEditTab(this,'fiches')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;padding:4px 12px;border-radius:8px;color:var(--text-m)">📄 Fiches</button>
+    </div>
+
+    <!-- Contenu onglets -->
+    <div style="flex:1;overflow-y:auto">
+
+      <!-- Onglet Manuel -->
+      <div id="edit-act-tab-manuel">
+        <div class="form-group"><label>Titre de l'activité *</label><input type="text" id="edit-act-titre" placeholder="ex : Lecture silencieuse"/></div>
+        <div class="form-group"><label>Pourquoi cette activité</label><textarea id="edit-act-pourquoi" rows="2" placeholder="ex : Travaille la compréhension à son niveau"></textarea></div>
+        <div class="form-group"><label>💡 Adaptation / conseil</label><input type="text" id="edit-act-adaptation" placeholder="ex : Texte court, avec illustrations"/></div>
+      </div>
+
+      <!-- Onglet Ateliers -->
+      <div id="edit-act-tab-ateliers" class="hidden">
+        <input type="text" id="edit-act-search-atelier" placeholder="🔍 Rechercher un atelier…" oninput="renderEditAteliersList()" style="width:100%;margin-bottom:.75rem"/>
+        <div id="edit-act-ateliers-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+
+      <!-- Onglet Fiches -->
+      <div id="edit-act-tab-fiches" class="hidden">
+        <div id="edit-act-fiches-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border)">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-activite')">Annuler</button>
+      <button class="btn btn-primary" id="edit-act-save-btn" onclick="saveEditActivite()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL atelier -->
+<div class="modal-overlay" id="modal-add-atelier">
+  <div class="modal">
+    <div class="modal-title">Ajouter un atelier</div>
+    <div class="upload-zone mb-2" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept="image/*" onchange="handleImageUpload(this)">
+      <div style="font-size:2rem;margin-bottom:.75rem">📷</div>
+      <div class="font-bold" style="font-size:14px;margin-bottom:4px">Glissez une photo ou cliquez</div>
+      <div class="text-sm text-mid">L'IA analysera automatiquement l'atelier</div>
+    </div>
+    <div id="upload-preview" class="hidden mb-2">
+      <div id="preview-container" style="width:100%;height:160px;border-radius:var(--rs);overflow:hidden;position:relative;cursor:grab;background:var(--bg)">
+        <img id="preview-img" style="position:absolute;min-width:100%;min-height:100%;max-width:none;user-select:none;-webkit-user-drag:none;" draggable="false"/>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <div style="font-size:11px;color:var(--text-l)">↔ Glissez l'image pour recadrer</div>
+        <button id="btn-reanalyze" class="btn btn-sm hidden" style="font-size:11px;color:var(--c-teal-d);background:var(--c-teal-l);border:none" onclick="analyzeWithAI(currentImageData)">🔄 Regénérer avec l'IA</button>
+      </div>
+    </div>
+    <div id="ai-analyze-status" class="hidden mb-2">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-teal-d);background:var(--c-teal-l);padding:.6rem 1rem;border-radius:var(--rs)">
+        <div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>
+        L'IA analyse la photo et remplit les champs...
+      </div>
+    </div>
+    <div id="atelier-form">
+      <div class="form-row">
+        <div class="form-group"><label>Nom de l'atelier *</label><input type="text" id="atelier-title" placeholder="ex : Jeu de tri des formes"/></div>
+        <div class="form-group"><label>Domaine *</label>
+          <select id="atelier-domain">
+            <option value="">— Choisir —</option>
+            <optgroup label="Français">
+            <option>Lecture / Compréhension</option>
+            <option>Production d'écrits / Écriture</option>
+            <option>Étude de la langue</option>
+            <option>Langage oral</option>
+            <option>Calligraphie / Graphisme</option>
+            </optgroup>
+            <optgroup label="Mathématiques">
+            <option>Nombres et calculs</option>
+            <option>Grandeurs et mesures</option>
+            <option>Espace et géométrie</option>
+            <option>Résolution de problèmes</option>
+            </optgroup>
+            <optgroup label="Autres disciplines">
+            <option>Sciences / Découverte du monde</option>
+            <option>Arts / Créativité</option>
+            <option>Éducation musicale</option>
+            <option>Éducation physique</option>
+            </optgroup>
+            <optgroup label="Compétences transversales ULIS">
+            <option>Autonomie</option>
+            <option>Motricité fine</option>
+            <option>Motricité globale</option>
+            <option>Socio-émotionnel</option>
+            <option>Mémoire et attention</option>
+            <option>Vie pratique</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Objectif pédagogique</label><textarea id="atelier-obj" rows="2" placeholder="Ce que l'élève va apprendre ou exercer"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Niveau(x)</label><input type="text" id="atelier-levels" placeholder="ex : CP, CE1, CE2"/></div>
+        <div class="form-group"><label>Durée estimée</label>
+          <select id="atelier-duree"><option value="10">10 min</option><option value="15">15 min</option><option value="20" selected>20 min</option><option value="30">30 min</option><option value="45">45 min</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="atelier-notes" placeholder="ex : nécessite aide au démarrage"/></div>
+    </div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-atelier')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveAtelier()">Enregistrer l'atelier</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL élève -->
+<div class="modal-overlay" id="modal-add-eleve">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">Profil élève & Projet Individualisé</div>
+
+    <!-- Import PI -->
+    <div style="background:var(--c-blue-l);border:1px solid var(--c-blue-m);border-radius:var(--rs);padding:1rem;margin-bottom:1.25rem">
+      <div style="font-weight:700;font-size:13px;color:var(--c-blue-d);margin-bottom:.5rem">📄 Importer un PI existant (optionnel)</div>
+      <div style="font-size:12px;color:var(--text-m);margin-bottom:.75rem">PDF ou photo/scan — l'IA lit le document et remplit les cases automatiquement</div>
+      <div class="upload-zone" id="pi-upload-zone" onclick="document.getElementById('pi-file-input').click()" style="padding:1.25rem;background:white">
+        <input type="file" id="pi-file-input" accept=".pdf,image/*" onchange="handlePIUpload(this)">
+        <div style="font-size:1.5rem;margin-bottom:.4rem">📎</div>
+        <div style="font-size:13px;font-weight:600">Glissez le PI ici ou cliquez</div>
+        <div style="font-size:11px;color:var(--text-l);margin-top:2px">PDF ou photo acceptés</div>
+      </div>
+      <div id="pi-analyze-status" class="hidden mt-1">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-blue-d)"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div>L'IA lit le document PI...</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Prénom *</label><input type="text" id="eleve-nom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Classe de rattachement</label><input type="text" id="eleve-classe" placeholder="ex : CE2, 6e..."/></div>
+    </div>
+    <div class="form-group"><label>Difficultés principales (séparées par des virgules)</label><input type="text" id="eleve-difficultes" placeholder="ex : lecture, concentration, motricité fine"/></div>
+    <div class="form-group"><label>Points forts & appuis</label><input type="text" id="eleve-forces" placeholder="ex : mémoire visuelle, autonomie"/></div>
+    <div class="form-group"><label>Objectifs prioritaires du PI</label><textarea id="eleve-objectifs" rows="3" placeholder="Décrivez les objectifs du projet individualisé..."></textarea></div>
+    <div class="form-group"><label>Adaptations nécessaires</label><textarea id="eleve-adaptations" rows="2" placeholder="ex : consignes orales, temps allongé..."></textarea></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-eleve')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEleve()">Enregistrer le profil</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PDTs élève -->
+<div class="modal-overlay" id="modal-eleve-pdts">
+  <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto">
+    <div class="flex justify-between items-center mb-3">
+      <div class="modal-title" id="modal-eleve-pdts-title" style="margin:0">Plans de travail</div>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-eleve-pdts')">✕ Fermer</button>
+    </div>
+    <div id="modal-eleve-pdts-content"></div>
+  </div>
+</div>
+
+<!-- MODAL import lot ateliers -->
+<div class="modal-overlay" id="modal-batch-ateliers">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-title">📦 Import en lot — Ateliers</div>
+
+    <div id="batch-step-1">
+      <div class="upload-zone" id="batch-upload-zone" onclick="document.getElementById('batch-file-input').click()">
+        <input type="file" id="batch-file-input" accept="image/*" multiple onchange="handleBatchUpload(this)">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🖼️</div>
+        <div class="font-bold" style="font-size:15px;margin-bottom:4px">Sélectionnez toutes vos photos d'ateliers</div>
+        <div class="text-sm text-mid">Plusieurs fichiers à la fois — l'IA analyse chaque photo</div>
+      </div>
+      <div class="flex gap-1 justify-between mt-2">
+        <button class="btn btn-secondary" onclick="closeModal('modal-batch-ateliers')">Annuler</button>
+      </div>
+    </div>
+
+    <div id="batch-step-2" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div>
+          <div class="font-bold" style="font-size:1rem">Vérification des ateliers détectés</div>
+          <div class="text-sm text-mid" id="batch-progress-label">Analyse en cours...</div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-batch-ateliers')">Annuler</button>
+          <button class="btn btn-primary btn-sm" id="batch-save-btn" onclick="saveBatchAteliers()" style="display:none">✅ Tout enregistrer</button>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;margin-bottom:1.25rem;overflow:hidden">
+        <div id="batch-progress-bar" style="height:100%;background:var(--c-teal);border-radius:3px;transition:width .4s;width:0%"></div>
+      </div>
+      <div id="batch-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL modifier atelier -->
+<div class="modal-overlay" id="modal-edit-atelier">
+  <div class="modal">
+    <div class="modal-title">✏️ Modifier l'atelier</div>
+    <input type="hidden" id="edit-atelier-id">
+    <div class="upload-zone mb-2" id="edit-atelier-upload-zone" onclick="document.getElementById('edit-atelier-photo-input').click()" style="padding:.75rem">
+      <input type="file" id="edit-atelier-photo-input" accept="image/*" onchange="handleEditAtelierPhoto(this)">
+      <div id="edit-atelier-img-wrap">
+        <img id="edit-atelier-img-preview" class="hidden" style="width:100%;height:120px;object-fit:cover;border-radius:var(--rs);margin-bottom:.25rem"/>
+      </div>
+      <div id="edit-atelier-upload-label" style="text-align:center">
+        <div style="font-size:1.2rem;margin-bottom:.2rem">📷</div>
+        <div style="font-size:12px;font-weight:600">Changer la photo (optionnel)</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom de l'atelier *</label><input type="text" id="edit-atelier-title"/></div>
+      <div class="form-group"><label>Domaine *</label>
+        <select id="edit-atelier-domain">
+          <option value="">— Choisir —</option>
+          <optgroup label="Français">
+          <option>Lecture / Compréhension</option>
+          <option>Production d'écrits / Écriture</option>
+          <option>Étude de la langue</option>
+          <option>Langage oral</option>
+          <option>Calligraphie / Graphisme</option>
+          </optgroup>
+          <optgroup label="Mathématiques">
+          <option>Nombres et calculs</option>
+          <option>Grandeurs et mesures</option>
+          <option>Espace et géométrie</option>
+          <option>Résolution de problèmes</option>
+          </optgroup>
+          <optgroup label="Autres disciplines">
+          <option>Sciences / Découverte du monde</option>
+          <option>Arts / Créativité</option>
+          <option>Éducation musicale</option>
+          <option>Éducation physique</option>
+          </optgroup>
+          <optgroup label="Compétences transversales ULIS">
+          <option>Autonomie</option>
+          <option>Motricité fine</option>
+          <option>Motricité globale</option>
+          <option>Socio-émotionnel</option>
+          <option>Mémoire et attention</option>
+          <option>Vie pratique</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Objectif pédagogique</label><textarea id="edit-atelier-obj" rows="2"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="edit-atelier-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Durée estimée</label>
+        <select id="edit-atelier-duree">
+          <option value="10">10 min</option><option value="15">15 min</option>
+          <option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="edit-atelier-notes"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-atelier')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEditAtelier()">Enregistrer les modifications</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ajouter fiche -->
+<div class="modal-overlay" id="modal-add-fiche">
+  <div class="modal">
+    <div class="modal-title">📎 Ajouter une fiche / ressource</div>
+    <div class="upload-zone mb-2" id="fiche-upload-zone" onclick="document.getElementById('fiche-file-input').click()">
+      <input type="file" id="fiche-file-input" accept=".pdf,image/*" onchange="handleFicheUpload(this)">
+      <div style="font-size:2rem;margin-bottom:.75rem">📄</div>
+      <div class="font-bold" style="font-size:14px;margin-bottom:4px">PDF ou photo de fiche</div>
+      <div class="text-sm text-mid">L'IA détecte automatiquement domaine, type et niveau</div>
+    </div>
+    <div id="fiche-analyze-status" class="hidden mb-2">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-teal-d);background:var(--c-teal-l);padding:.6rem 1rem;border-radius:var(--rs)">
+        <div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>L'IA analyse la fiche...
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Titre *</label><input type="text" id="fiche-title" placeholder="ex : Addition pose écrite CE1"/></div>
+      <div class="form-group"><label>Domaine *</label>
+        <select id="fiche-domain">
+          <option value="">— Choisir —</option>
+          <optgroup label="Français"><option>Lecture / Compréhension</option><option>Production d'écrits / Écriture</option><option>Étude de la langue</option><option>Langage oral</option><option>Calligraphie / Graphisme</option></optgroup>
+          <optgroup label="Mathématiques"><option>Nombres et calculs</option><option>Grandeurs et mesures</option><option>Espace et géométrie</option><option>Résolution de problèmes</option></optgroup>
+          <optgroup label="Autres disciplines"><option>Sciences / Découverte du monde</option><option>Arts / Créativité</option><option>Éducation musicale</option><option>Éducation physique</option></optgroup>
+          <optgroup label="Fonctions cognitives"><option>Mémoire et attention</option><option>Discrimination visuelle</option><option>Séquençage / Logique</option><option>Raisonnement</option><option>Motricité fine</option><option>Autonomie</option><option>Socio-émotionnel</option><option>Vie pratique</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="fiche-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Type d'exercice</label>
+        <select id="fiche-type">
+          <option value="exercice">Exercice classique</option>
+          <option value="trous">Exercice à trous</option>
+          <option value="calcul">Calcul</option>
+          <option value="comprehension">Compréhension</option>
+          <option value="coloriage">Coloriage / Dessin</option>
+          <option value="cognitif">Fonction cognitive</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes / Adaptations</label><input type="text" id="fiche-notes" placeholder="ex : version simplifiée, avec aide-mémoire"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-fiche')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFiche()">Enregistrer la fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL générer fiche IA -->
+<div class="modal-overlay" id="modal-gen-fiche">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-title">✨ Générer une fiche avec l'IA</div>
+    <div class="form-row">
+      <div class="form-group"><label>Domaine *</label>
+        <select id="gen-domain">
+          <option value="">— Choisir —</option>
+          <optgroup label="Français"><option>Lecture / Compréhension</option><option>Production d'écrits / Écriture</option><option>Étude de la langue</option><option>Langage oral</option><option>Calligraphie / Graphisme</option></optgroup>
+          <optgroup label="Mathématiques"><option>Nombres et calculs</option><option>Grandeurs et mesures</option><option>Espace et géométrie</option><option>Résolution de problèmes</option></optgroup>
+          <optgroup label="Fonctions cognitives"><option>Mémoire et attention</option><option>Discrimination visuelle</option><option>Séquençage / Logique</option><option>Raisonnement</option></optgroup>
+        </select>
+      </div>
+      <div class="form-group"><label>Type de fiche *</label>
+        <select id="gen-type">
+          <option value="trous">Exercice à trous</option>
+          <option value="calcul">Calcul / Numération</option>
+          <option value="comprehension">Compréhension de texte</option>
+          <option value="coloriage">Coloriage dirigé</option>
+          <option value="memoire">Mémoire / Attention</option>
+          <option value="discrimination">Discrimination visuelle</option>
+          <option value="sequençage">Séquençage / Logique</option>
+          <option value="motricite">Graphisme / Motricité fine</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Niveau(x)</label><input type="text" id="gen-levels" placeholder="ex : CP, CE1"/></div>
+      <div class="form-group"><label>Thème / Sujet (optionnel)</label><input type="text" id="gen-theme" placeholder="ex : les animaux, l'automne, les dizaines"/></div>
+    </div>
+    <div class="form-group"><label>Consignes particulières (optionnel)</label><textarea id="gen-consignes" rows="2" placeholder="ex : consignes très courtes, pictogrammes, 5 exercices max..."></textarea></div>
+    <div id="gen-preview" class="hidden mt-2">
+      <div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;max-height:400px;overflow-y:auto" id="gen-preview-content"></div>
+    </div>
+    <div id="gen-loading" class="hidden mt-2"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA crée la fiche...</div></div></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-gen-fiche')">Annuler</button>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" id="gen-save-btn" onclick="saveGeneratedFiche()" style="display:none">💾 Sauvegarder</button>
+        <button class="btn btn-primary" onclick="generateFiche()">✨ Générer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ajouter ressource -->
+<div class="modal-overlay" id="modal-add-ressource">
+  <div class="modal">
+    <div class="modal-title">⭐ Ajouter un outil</div>
+    <div class="upload-zone mb-2" id="ressource-upload-zone" onclick="document.getElementById('ressource-photo-input').click()" style="padding:1.25rem">
+      <input type="file" id="ressource-photo-input" accept="image/*" onchange="handleMatPhoto(this,'ressource')">
+      <div id="ressource-photo-preview" class="hidden mb-1"><img id="ressource-photo-img" style="width:100%;height:100px;object-fit:cover;border-radius:var(--rs)"/></div>
+      <div id="ressource-upload-label">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">📷</div>
+        <div style="font-size:13px;font-weight:600">Photo (optionnel)</div>
+      </div>
+    </div>
+    <div class="form-group"><label>Nom *</label><input type="text" id="ressource-nom" placeholder="ex : Réglettes cuisenaire, AVS, support visuel…"/></div>
+    <div class="form-group"><label>Description / usage (optionnel)</label><input type="text" id="ressource-desc" placeholder="ex : pour activités de numération, tiroir bleu"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-ressource');resetRessourceForm()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveRessource()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL modifier ressource -->
+<div class="modal-overlay" id="modal-edit-ressource">
+  <div class="modal">
+    <div class="modal-title">✏️ Modifier l'outil</div>
+    <div class="upload-zone mb-2" id="edit-ressource-upload-zone" onclick="document.getElementById('edit-ressource-photo-input').click()" style="padding:1.25rem">
+      <input type="file" id="edit-ressource-photo-input" accept="image/*" onchange="handleEditRessourcePhoto(this)">
+      <div id="edit-ressource-photo-preview" class="mb-1"><img id="edit-ressource-photo-img" style="width:100%;height:100px;object-fit:cover;border-radius:var(--rs)"/></div>
+      <div id="edit-ressource-upload-label" class="hidden">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">📷</div>
+        <div style="font-size:13px;font-weight:600">Changer la photo (optionnel)</div>
+      </div>
+    </div>
+    <div class="form-group"><label>Nom *</label><input type="text" id="edit-ressource-nom"/></div>
+    <div class="form-group"><label>Description / usage (optionnel)</label><input type="text" id="edit-ressource-desc"/></div>
+    <div class="flex gap-1 justify-between mt-2">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ressource')">Annuler</button>
+      <button class="btn btn-primary" onclick="updateRessource()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://bsirohrbusprtojodasc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaXJvaHJidXNwcnRvam9kYXNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTc4OTMsImV4cCI6MjA4OTI3Mzg5M30.DMDBAPnbjrhSyfaY6GTbSCSP4XQ-qzJDv5GPtGSOQ3A';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let ateliers = [], eleves = [], pdts = [];
+let selectedStudentId = null;
+let currentImageData = null;
+let activeFilter = 'all';
+
+const DOMAINES = {
+  français: ['Lecture / Compréhension',"Production d'écrits / Écriture",'Étude de la langue','Langage oral','Calligraphie / Graphisme'],
+  maths: ['Nombres et calculs','Grandeurs et mesures','Espace et géométrie','Résolution de problèmes'],
+  disciplines: ['Sciences / Découverte du monde','Arts / Créativité','Éducation musicale','Éducation physique'],
+  transversal: ['Autonomie','Motricité fine','Motricité globale','Socio-émotionnel','Mémoire et attention','Vie pratique']
+};
+const ALL_DOMAINES = [...DOMAINES.français,...DOMAINES.maths,...DOMAINES.disciplines,...DOMAINES.transversal];
+const DOMAINE_LISTE_IA = ALL_DOMAINES.join(', ');
+
+const domainColors = {
+  'Lecture / Compréhension':'teal',"Production d'écrits / Écriture":'teal','Étude de la langue':'teal','Langage oral':'teal','Calligraphie / Graphisme':'teal',
+  'Nombres et calculs':'blue','Grandeurs et mesures':'blue','Espace et géométrie':'blue','Résolution de problèmes':'blue',
+  'Sciences / Découverte du monde':'coral','Arts / Créativité':'pink','Éducation musicale':'pink','Éducation physique':'green',
+  'Autonomie':'green','Motricité fine':'amber','Motricité globale':'amber','Socio-émotionnel':'purple','Mémoire et attention':'purple','Vie pratique':'amber'
+};
+const avatarColors = ['teal','blue','purple','coral','amber','green'];
+const domainHex = {
+  'Lecture / Compréhension':'#1D9E75',"Production d'écrits / Écriture":'#0F6E56','Étude de la langue':'#5DCAA5','Langage oral':'#085041','Calligraphie / Graphisme':'#9FE1CB',
+  'Nombres et calculs':'#378ADD','Grandeurs et mesures':'#185FA5','Espace et géométrie':'#85B7EB','Résolution de problèmes':'#0C447C',
+  'Sciences / Découverte du monde':'#D85A30','Arts / Créativité':'#D4537E','Éducation musicale':'#ED93B1','Éducation physique':'#639922',
+  'Autonomie':'#3B6D11','Motricité fine':'#EF9F27','Motricité globale':'#BA7517','Socio-émotionnel':'#7F77DD','Mémoire et attention':'#534AB7','Vie pratique':'#854F0B'
+};
+
+const groupColors = {français:'#1D9E75', maths:'#378ADD', disciplines:'#D85A30', transversal:'#7F77DD'};
+const groupNames = {français:'Français', maths:'Mathématiques', disciplines:'Autres disciplines', transversal:'Transversal ULIS'};
+
+function toggleSynthese(){
+  const c=document.getElementById('synthese-content');
+  const ch=document.getElementById('synthese-chevron');
+  if(c.classList.contains('hidden')){
+    c.classList.remove('hidden');
+    ch.textContent='▲';
+    renderSynthese();
+  } else {
+    c.classList.add('hidden');
+    ch.textContent='▼';
+  }
+}
+
+function renderSynthese(){
+  const content=document.getElementById('synthese-content');
+  const total=ateliers.length;
+  if(!total){content.innerHTML='<div class="text-sm text-mid">Aucun atelier dans la bibliothèque.</div>';return;}
+
+  const countByDomain={};
+  ateliers.forEach(a=>{countByDomain[a.domain]=(countByDomain[a.domain]||0)+1;});
+
+  const groups = Object.entries(DOMAINES);
+  const maxCount = Math.max(...ALL_DOMAINES.map(d=>countByDomain[d]||0), 1);
+
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">
+      ${groups.map(([key,domains])=>{
+        const groupTotal=domains.reduce((s,d)=>s+(countByDomain[d]||0),0);
+        const color=groupColors[key];
+        return`<div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden">
+          <div style="background:${color}22;padding:.6rem .85rem;border-bottom:1px solid var(--border)">
+            <div style="font-weight:700;font-size:13px;color:${color}">${groupNames[key]}</div>
+            <div style="font-size:11px;color:var(--text-m)">${groupTotal} atelier${groupTotal>1?'s':''}</div>
+          </div>
+          <div style="padding:.6rem .85rem">
+            ${domains.map(d=>{
+              const n=countByDomain[d]||0;
+              const pct=Math.round(n/maxCount*100);
+              const manque=n===0;
+              return`<div style="margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+                  <span style="color:${manque?'var(--c-coral-d)':'var(--text)'}${manque?';font-weight:700':''}">${manque?'⚠ ':''}${d}</span>
+                  <span style="font-weight:700;color:${manque?'var(--c-coral-d)':color}">${n}</span>
+                </div>
+                <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${manque?'var(--c-coral)':color};border-radius:3px"></div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:.85rem;font-size:12px;color:var(--text-m)">
+      ${ALL_DOMAINES.filter(d=>!countByDomain[d]).length} domaine${ALL_DOMAINES.filter(d=>!countByDomain[d]).length>1?'s':''} sans atelier · Total : ${total} atelier${total>1?'s':''}
+    </div>`;
+}
+
+function toast(msg, d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-add-atelier')resetAtelierForm();}
+function domainTag(d){const c=domainColors[d]||'teal';return`<span class="tag tag-${c}">${d}</span>`;}
+
+async function loadAll(){
+  const [a,e,p] = await Promise.all([
+    sb.from('ateliers').select('*').order('created_at',{ascending:false}),
+    sb.from('eleves_pdt').select('*').order('created_at',{ascending:false}),
+    sb.from('plans_travail').select('*').order('created_at',{ascending:false})
+  ]);
+  ateliers = a.data||[];
+  eleves = e.data||[];
+  pdts = p.data||[];
+  await Promise.all([loadFiches(), loadMateriel()]);
+  updateStats();
+}
+
+function updateStats(){
+  const done = pdts.reduce((acc,p)=>acc+(p.activities||[]).filter(a=>a.status==='done').length,0);
+  document.getElementById('stat-ateliers').textContent=ateliers.length;
+  document.getElementById('stat-eleves').textContent=eleves.length;
+  document.getElementById('stat-pdts').textContent=pdts.length;
+  const badgePdts = document.getElementById('badge-pdts');
+  if(badgePdts) badgePdts.textContent = pdts.length;
+  document.getElementById('stat-done').textContent=done;
+  document.getElementById('badge-ateliers').textContent=ateliers.length;
+  document.getElementById('badge-eleves').textContent=eleves.length;
+}
+
+function showSection(name,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='ateliers')renderAteliers();
+  if(name==='eleves')renderEleves();
+  if(name==='fiches'){loadFiches().then(renderFiches);}
+  if(name==='materiel'){loadMateriel().then(()=>{renderMaterielList();renderMaterielSynthese();});}
+  if(name==='generer'){showPDTElevesGrid();}
+  if(name==='generer')renderSelectStudents();
+  if(name==='suivi')renderSuiviSelect();
+}
+
+let activeLevelFilter = 'all';
+
+function setFilter(btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter=btn.dataset.domain;
+  renderAteliers();
+}
+
+function setLevelFilter(btn){
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeLevelFilter = btn.dataset.level;
+  renderAteliers();
+}
+
+// ---- ATELIERS ----
+function renderAteliers(){
+  const grid=document.getElementById('ateliers-grid');
+  const searchEl = document.getElementById('atelier-search');
+  const searchQ = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  let filtered=ateliers;
+  // Filtre matière
+  if(activeFilter==='__français__') filtered=filtered.filter(a=>DOMAINES.français.includes(a.domain));
+  else if(activeFilter==='__maths__') filtered=filtered.filter(a=>DOMAINES.maths.includes(a.domain));
+  else if(activeFilter==='__disciplines__') filtered=filtered.filter(a=>DOMAINES.disciplines.includes(a.domain));
+  else if(activeFilter==='__transversal__') filtered=filtered.filter(a=>DOMAINES.transversal.includes(a.domain));
+  else if(activeFilter!=='all') filtered=filtered.filter(a=>a.domain===activeFilter);
+  // Filtre niveau
+  if(activeLevelFilter!=='all'){
+    filtered=filtered.filter(a=>(a.levels||[]).some(l=>l.toLowerCase()===activeLevelFilter.toLowerCase()));
+  }
+  // Recherche texte
+  if(searchQ){
+    filtered=filtered.filter(a=>
+      (a.title||'').toLowerCase().includes(searchQ)||
+      (a.objectif||'').toLowerCase().includes(searchQ)||
+      (a.domain||'').toLowerCase().includes(searchQ)||
+      (a.notes||'').toLowerCase().includes(searchQ)||
+      (a.levels||[]).some(l=>l.toLowerCase().includes(searchQ))
+    );
+  }
+  if(!filtered.length){
+    const msg = searchQ ? `Aucun résultat pour "${searchQ}".` : `Aucun atelier${activeFilter!=='all'?' dans ce domaine':activeLevelFilter!=='all'?' pour ce niveau':''}.`;
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>${msg}</div></div>`;
+    return;
+  }
+  grid.innerHTML=filtered.map(a=>`
+    <div class="atelier-card">
+      <div class="atelier-img">${a.image_url?`<img src="${a.image_url}" alt="${a.title}">`:'<span style="font-size:2rem">🧩</span>'}</div>
+      <div class="atelier-body">
+        <div class="atelier-title">${a.title}</div>
+        <div class="atelier-obj">${a.objectif||'Objectif non renseigné'}</div>
+        <div class="atelier-tags">
+          ${domainTag(a.domain)}
+          ${(a.levels||[]).slice(0,2).map(l=>`<span class="tag" style="background:var(--bg);color:var(--text-m);border:1px solid var(--border)">${l}</span>`).join('')}
+          ${a.duree?`<span class="tag" style="background:var(--bg);color:var(--text-m)">⏱ ${a.duree} min</span>`:''}
+        </div>
+        ${a.notes?`<div class="text-xs text-mid mt-1">💡 ${a.notes}</div>`:''}
+        <div class="mt-1 flex gap-1">
+          <button class="btn btn-sm" style="color:var(--c-blue-d);background:var(--c-blue-l);border:none;font-size:12px" onclick="openEditAtelier('${a.id}')">✏️ Modifier</button>
+          <button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px" onclick="deleteAtelier('${a.id}')">Supprimer</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteAtelier(id){
+  if(!confirm('Supprimer cet atelier ?'))return;
+  await sb.from('ateliers').delete().eq('id',id);
+  ateliers=ateliers.filter(a=>a.id!==id);
+  updateStats();renderAteliers();toast('Atelier supprimé.');
+}
+
+let editAtelierNewPhoto = null;
+
+function handleEditAtelierPhoto(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    editAtelierNewPhoto = e.target.result;
+    const img = document.getElementById('edit-atelier-img-preview');
+    img.src = e.target.result;
+    img.classList.remove('hidden');
+    document.getElementById('edit-atelier-upload-label').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function openEditAtelier(id){
+  const a = ateliers.find(x=>x.id===id);
+  if(!a) return;
+  editAtelierNewPhoto = null;
+  document.getElementById('edit-atelier-photo-input').value = '';
+  document.getElementById('edit-atelier-id').value = a.id;
+  document.getElementById('edit-atelier-title').value = a.title||'';
+  document.getElementById('edit-atelier-domain').value = a.domain||'';
+  document.getElementById('edit-atelier-obj').value = a.objectif||'';
+  document.getElementById('edit-atelier-levels').value = (a.levels||[]).join(', ');
+  document.getElementById('edit-atelier-duree').value = a.duree||20;
+  document.getElementById('edit-atelier-notes').value = a.notes||'';
+  const imgPreview = document.getElementById('edit-atelier-img-preview');
+  const uploadLabel = document.getElementById('edit-atelier-upload-label');
+  if(a.image_url){
+    imgPreview.src=a.image_url;
+    imgPreview.classList.remove('hidden');
+    uploadLabel.style.display='none';
+  } else {
+    imgPreview.classList.add('hidden');
+    uploadLabel.style.display='';
+  }
+  openModal('modal-edit-atelier');
+}
+
+async function saveEditAtelier(){
+  const id = document.getElementById('edit-atelier-id').value;
+  const title = document.getElementById('edit-atelier-title').value.trim();
+  const domain = document.getElementById('edit-atelier-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le nom et le domaine.');return;}
+  const updates = {
+    title,
+    domain,
+    objectif: document.getElementById('edit-atelier-obj').value.trim(),
+    levels: document.getElementById('edit-atelier-levels').value.split(',').map(s=>s.trim()).filter(Boolean),
+    duree: parseInt(document.getElementById('edit-atelier-duree').value),
+    notes: document.getElementById('edit-atelier-notes').value.trim()
+  };
+  if(editAtelierNewPhoto){
+    const compressed = await compressImage(editAtelierNewPhoto, 800, 0.75);
+    const blob = await(await fetch(compressed)).blob();
+    const fileName = `atelier-edit-${Date.now()}.jpg`;
+    const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
+    if(up){ const {data:url} = sb.storage.from('ateliers-photos').getPublicUrl(fileName); updates.image_url = url.publicUrl; }
+  }
+  const {error} = await sb.from('ateliers').update(updates).eq('id',id);
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  const idx = ateliers.findIndex(a=>a.id===id);
+  if(idx>=0) ateliers[idx] = {...ateliers[idx], ...updates};
+  closeModal('modal-edit-atelier');
+  renderAteliers();
+  toast('✅ Atelier mis à jour !');
+}
+
+// ---- UPLOAD IMAGE ----
+let panState = {dragging:false, startX:0, startY:0, offX:0, offY:0};
+
+function setupImagePan(img, container) {
+  // Centre l'image au départ
+  img.onload = () => {
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const scale = Math.max(cw / iw, ch / ih);
+    const dispW = iw * scale, dispH = ih * scale;
+    panState.offX = (cw - dispW) / 2;
+    panState.offY = (ch - dispH) / 2;
+    img.style.width = dispW + 'px';
+    img.style.height = dispH + 'px';
+    img.style.left = panState.offX + 'px';
+    img.style.top = panState.offY + 'px';
+  };
+
+  const clamp = () => {
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    const iw = parseInt(img.style.width), ih = parseInt(img.style.height);
+    panState.offX = Math.min(0, Math.max(cw - iw, panState.offX));
+    panState.offY = Math.min(0, Math.max(ch - ih, panState.offY));
+    img.style.left = panState.offX + 'px';
+    img.style.top = panState.offY + 'px';
+  };
+
+  container.addEventListener('mousedown', e => {
+    panState.dragging = true;
+    panState.startX = e.clientX - panState.offX;
+    panState.startY = e.clientY - panState.offY;
+    container.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  container.addEventListener('touchstart', e => {
+    panState.dragging = true;
+    panState.startX = e.touches[0].clientX - panState.offX;
+    panState.startY = e.touches[0].clientY - panState.offY;
+    e.preventDefault();
+  }, {passive:false});
+
+  const onMove = (cx, cy) => {
+    if (!panState.dragging) return;
+    panState.offX = cx - panState.startX;
+    panState.offY = cy - panState.startY;
+    clamp();
+  };
+  document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  document.addEventListener('touchmove', e => onMove(e.touches[0].clientX, e.touches[0].clientY), {passive:true});
+
+  const onEnd = () => { panState.dragging = false; container.style.cursor = 'grab'; };
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
+function handleImageUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    currentImageData=e.target.result;
+    const preview = document.getElementById('upload-preview');
+    const img = document.getElementById('preview-img');
+    const container = document.getElementById('preview-container');
+    preview.classList.remove('hidden');
+    document.getElementById('upload-zone').classList.add('hidden');
+    img.src = currentImageData;
+    setupImagePan(img, container);
+    // Compresse avant d'envoyer à l'IA (800px, qualité 0.6 → ~80-120 KB)
+    compressImage(currentImageData, 800, 0.6).then(compressed => analyzeWithAI(compressed));
+  };
+  reader.readAsDataURL(file);
+}
+
+// Redimensionne et compresse une image (max largeur px, qualité 0-1)
+function compressImage(dataUrl, maxSize, quality){
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if(w > maxSize || h > maxSize){
+        if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+async function analyzeWithAI(imageData){
+  document.getElementById('ai-analyze-status').classList.remove('hidden');
+  // Ne bloque plus le formulaire — juste un indicateur discret
+  try{
+    const base64=imageData.split(',')[1];
+    const mediaType=imageData.match(/data:([^;]+)/)[1];
+    const titreActuel = document.getElementById('atelier-title').value.trim();
+    const domaineActuel = document.getElementById('atelier-domain').value;
+    const contexte = titreActuel ? `Le titre saisi est "${titreActuel}". ${domaineActuel ? `Le domaine est "${domaineActuel}".` : ''} Tiens-en compte pour affiner l'objectif et les niveaux.` : '';
+    const response=await fetch('/api/ai',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+        {type:'text',text:`Tu es expert en pédagogie adaptée ULIS. Analyse cette photo d'un atelier ou jeu pédagogique. ${contexte}
+Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks, en choisissant le domaine parmi cette liste exacte : ${DOMAINE_LISTE_IA}.
+Format : {"titre":"Nom court (max 6 mots)","domaine":"domaine exact de la liste","objectif":"Objectif pédagogique principal (1-2 phrases)","niveaux":"Niveaux suggérés ex: CP, CE1","notes":"Adaptation ou remarque si pertinent (sinon chaine vide)"}`}
+      ]}]})
+    });
+    const data=await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const result=JSON.parse(data.content[0].text.trim());
+    // Ne remplace titre/domaine que s'ils sont encore vides
+    if(!document.getElementById('atelier-title').value.trim())
+      document.getElementById('atelier-title').value=result.titre||'';
+    if(!document.getElementById('atelier-domain').value){
+      const ds=document.getElementById('atelier-domain');
+      for(let o of ds.options)if(o.value===result.domaine){ds.value=result.domaine;break;}
+    }
+    // Remplit toujours objectif, niveaux, notes
+    document.getElementById('atelier-obj').value=result.objectif||'';
+    document.getElementById('atelier-levels').value=result.niveaux||'';
+    document.getElementById('atelier-notes').value=result.notes||'';
+    // Affiche le bouton "Regénérer"
+    document.getElementById('btn-reanalyze').classList.remove('hidden');
+    toast('✨ Analyse IA terminée ! Vérifiez et complétez si besoin.');
+  }catch(e){
+    console.error('Erreur analyse IA:', e);
+    toast('Analyse IA indisponible — remplissez manuellement.',4000);
+  }
+  document.getElementById('ai-analyze-status').classList.add('hidden');
+}
+
+function resetAtelierForm(){
+  currentImageData=null;
+  panState={dragging:false,startX:0,startY:0,offX:0,offY:0};
+  document.getElementById('upload-zone').classList.remove('hidden');
+  document.getElementById('upload-preview').classList.add('hidden');
+  document.getElementById('ai-analyze-status').classList.add('hidden');
+  document.getElementById('btn-reanalyze').classList.add('hidden');
+  ['atelier-title','atelier-obj','atelier-levels','atelier-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('atelier-domain').value='';
+  document.getElementById('file-input').value='';
+}
+
+async function saveAtelier(){
+  const title=document.getElementById('atelier-title').value.trim();
+  const domain=document.getElementById('atelier-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le nom et le domaine.');return;}
+
+  let image_url=null;
+  if(currentImageData){
+    // Capture la zone recadrée puis compresse à 800px max avant upload Supabase
+    const container = document.getElementById('preview-container');
+    const img = document.getElementById('preview-img');
+    const canvas = document.createElement('canvas');
+    const cw = container.offsetWidth, ch = container.offsetHeight;
+    canvas.width = cw * 2; canvas.height = ch * 2;
+    const ctx = canvas.getContext('2d');
+    const imgEl = new Image(); imgEl.src = currentImageData;
+    await new Promise(r => { imgEl.onload = r; if (imgEl.complete) r(); });
+    const scale = parseInt(img.style.width) / imgEl.naturalWidth;
+    ctx.drawImage(imgEl,
+      -panState.offX / scale, -panState.offY / scale,
+      cw / scale, ch / scale,
+      0, 0, canvas.width, canvas.height
+    );
+    // Compresse le recadrage à 800px, qualité 0.75 (~100-150 KB)
+    const croppedData = await compressImage(canvas.toDataURL('image/jpeg', 1), 800, 0.75);
+    const blob = await (await fetch(croppedData)).blob();
+    const fileName = `atelier-${Date.now()}.jpg`;
+    const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
+    if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);image_url=url.publicUrl;}
+  }
+
+  const row={title,domain,objectif:document.getElementById('atelier-obj').value.trim(),levels:document.getElementById('atelier-levels').value.split(',').map(s=>s.trim()).filter(Boolean),duree:parseInt(document.getElementById('atelier-duree').value),notes:document.getElementById('atelier-notes').value.trim(),image_url};
+  const {data,error}=await sb.from('ateliers').insert([row]).select();
+  if(error){toast('Erreur Supabase : '+error.message,5000);return;}
+  ateliers.unshift(data[0]);
+  updateStats();closeModal('modal-add-atelier');renderAteliers();
+  toast('✅ Atelier ajouté à la bibliothèque !');
+}
+
+// ---- ÉLÈVES ----
+function renderEleves(){
+  const grid=document.getElementById('eleves-grid');
+  if(!eleves.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👤</div><div>Aucun élève pour l'instant.</div></div>`;return;}
+  grid.innerHTML=eleves.map((e,i)=>{
+    const c=avatarColors[i%avatarColors.length];
+    const nb=pdts.filter(p=>p.eleve_id===e.id).length;
+    return`<div class="card" style="cursor:pointer" onclick="openElevePDTs('${e.id}')">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="student-avatar" style="background:var(--c-${c}-l);color:var(--c-${c}-d)">${e.nom.substring(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:700;font-size:15px">${e.nom}</div><div class="text-xs text-mid">${e.classe||'Classe non renseignée'}</div></div>
+      </div>
+      ${(e.difficultes||[]).length?`<div class="mb-1">${e.difficultes.map(d=>`<span class="tag tag-coral" style="margin:2px">${d}</span>`).join('')}</div>`:''}
+      ${(e.forces||[]).length?`<div class="mb-1">${e.forces.map(f=>`<span class="tag tag-green" style="margin:2px">${f}</span>`).join('')}</div>`:''}
+      ${e.objectifs?`<div class="text-xs text-mid mt-1" style="border-left:3px solid var(--c-teal);padding-left:8px">${e.objectifs.substring(0,120)}${e.objectifs.length>120?'…':''}</div>`:''}
+      <div class="flex gap-1 mt-2 items-center">
+        <span class="text-xs text-mid">${nb} PDT</span>
+        <span class="text-xs" style="margin-left:auto;color:var(--c-teal-d);font-weight:600">Voir les PDT →</span>
+        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();deleteEleve('${e.id}')">Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveEleve(){
+  const nom=document.getElementById('eleve-nom').value.trim();
+  if(!nom){toast("Merci de saisir le prénom.");return;}
+  const row={nom,classe:document.getElementById('eleve-classe').value.trim(),difficultes:document.getElementById('eleve-difficultes').value.split(',').map(s=>s.trim()).filter(Boolean),forces:document.getElementById('eleve-forces').value.split(',').map(s=>s.trim()).filter(Boolean),objectifs:document.getElementById('eleve-objectifs').value.trim(),adaptations:document.getElementById('eleve-adaptations').value.trim()};
+  const {data,error}=await sb.from('eleves_pdt').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  eleves.unshift(data[0]);
+  updateStats();closeModal('modal-add-eleve');renderEleves();
+  ['eleve-nom','eleve-classe','eleve-difficultes','eleve-forces','eleve-objectifs','eleve-adaptations'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Profil élève enregistré !');
+}
+
+async function deleteEleve(id){
+  if(!confirm('Supprimer cet élève et tous ses PDT ?'))return;
+  await sb.from('eleves_pdt').delete().eq('id',id);
+  eleves=eleves.filter(e=>e.id!==id);pdts=pdts.filter(p=>p.eleve_id!==id);
+  updateStats();renderEleves();toast('Élève supprimé.');
+}
+
+// ---- GÉNÉRER PDT ----
+// ---- PDT MODULE ----
+const PDT_STATUTS = {
+  todo:    {label:'À faire',    emoji:'',   bg:'var(--bg)',         color:'var(--text-m)'},
+  doing:   {label:'En cours',   emoji:'⏳', bg:'var(--c-amber-l)',  color:'var(--c-amber-d)'},
+  acquis:  {label:'Acquis',     emoji:'✅', bg:'var(--c-teal-l)',   color:'var(--c-teal-d)'},
+  retravailler: {label:'À retravailler', emoji:'🔄', bg:'var(--c-coral-l)', color:'var(--c-coral-d)'},
+  lecon:   {label:'Leçon à apprendre', emoji:'📚', bg:'var(--c-blue-l)', color:'var(--c-blue-d)'},
+};
+
+let pdtCurrentEleveId = null;
+let pdtFromEleveView = false;
+
+function showPDTElevesGrid(){
+  document.getElementById('pdt-view-eleves').classList.remove('hidden');
+  document.getElementById('pdt-view-liste').classList.add('hidden');
+  document.getElementById('pdt-view-generer').classList.add('hidden');
+  renderPDTElevesGrid();
+}
+
+function showPDTListe(eleveId){
+  pdtCurrentEleveId = eleveId;
+  pdtFromEleveView = true;
+  document.getElementById('pdt-view-eleves').classList.add('hidden');
+  document.getElementById('pdt-view-liste').classList.remove('hidden');
+  document.getElementById('pdt-view-generer').classList.add('hidden');
+  const eleve = eleves.find(e=>e.id===eleveId);
+  document.getElementById('pdt-liste-title').textContent = eleve ? eleve.nom : '';
+  renderPDTListe(eleveId);
+}
+
+function showPDTGenerer(){
+  pdtFromEleveView = false;
+  document.getElementById('pdt-view-eleves').classList.add('hidden');
+  document.getElementById('pdt-view-liste').classList.add('hidden');
+  document.getElementById('pdt-view-generer').classList.remove('hidden');
+  renderSelectStudents();
+}
+
+function showPDTGenererForCurrent(){
+  pdtFromEleveView = true;
+  document.getElementById('pdt-view-liste').classList.add('hidden');
+  document.getElementById('pdt-view-generer').classList.remove('hidden');
+  renderSelectStudents();
+  // Pré-sélectionner l'élève courant
+  if(pdtCurrentEleveId){
+    setTimeout(()=>{
+      const btn = document.querySelector(`[data-eleve-id="${pdtCurrentEleveId}"]`);
+      if(btn) btn.click();
+    }, 100);
+  }
+}
+
+function backFromGenerer(){
+  if(pdtFromEleveView && pdtCurrentEleveId){
+    showPDTListe(pdtCurrentEleveId);
+  } else {
+    showPDTElevesGrid();
+  }
+}
+
+function renderPDTElevesGrid(){
+  const grid = document.getElementById('pdt-eleves-grid');
+  if(!eleves.length){
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div>Aucun élève.</div><div class="text-sm mt-1">Ajoutez des élèves dans l'onglet Élèves / PI.</div></div>`;
+    return;
+  }
+  grid.innerHTML = eleves.map((e,i)=>{
+    const c = avatarColors[i%avatarColors.length];
+    const nb = pdts.filter(p=>p.eleve_id===e.id).length;
+    const done = pdts.filter(p=>p.eleve_id===e.id).reduce((a,p)=>{
+      return a + (p.activities||[]).filter(x=>x.status==='acquis').length;
+    },0);
+    return `<div onclick="showPDTListe('${e.id}')" style="cursor:pointer;background:white;border:1px solid var(--border);border-radius:var(--rs);padding:1.25rem;min-width:140px;text-align:center;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--c-${c}-l);color:var(--c-${c}-d);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;margin:0 auto .75rem">${e.nom.substring(0,2).toUpperCase()}</div>
+      <div style="font-weight:700;font-size:14px">${e.nom}</div>
+      <div style="font-size:12px;color:var(--text-m)">${e.classe||''}</div>
+      <div style="margin-top:.5rem;font-size:12px;color:var(--c-teal-d);font-weight:600">${nb} PDT · ${done} acquis</div>
+    </div>`;
+  }).join('');
+  // Badge nav
+  document.getElementById('badge-pdts').textContent = pdts.length;
+}
+
+function buildStatutSelect(pdtId, actIdx, currentStatus){
+  const opts = Object.entries(PDT_STATUTS).map(([v,s])=>`<option value="${v}"${currentStatus===v?' selected':''}>${s.emoji?s.emoji+' ':''}${s.label}</option>`).join('');
+  const st = PDT_STATUTS[currentStatus]||PDT_STATUTS.todo;
+  return `<select onchange="updatePDTStatus('${pdtId}',${actIdx},this.value,this)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:none;background:${st.bg};color:${st.color};font-weight:600;cursor:pointer;flex-shrink:0;outline:none;appearance:none;-webkit-appearance:none;text-align:center">${opts}</select>`;
+}
+
+function renderPDTListe(eleveId){
+  const el = eleves.find(e=>e.id===eleveId);
+  const container = document.getElementById('pdt-liste-content');
+  const pdtsEleve = pdts.filter(p=>p.eleve_id===eleveId).slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  if(!pdtsEleve.length){
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div>Aucun PDT pour ${el?el.nom:'cet élève'}.</div><div class="text-sm mt-1">Cliquez sur "+ Nouveau PDT" pour en générer un.</div></div>`;
+    return;
+  }
+  container.innerHTML = pdtsEleve.map((pdt,idx)=>{
+    const num = pdtsEleve.length - idx;
+    const total = (pdt.activities||[]).length;
+    const acquis = (pdt.activities||[]).filter(a=>a.status==='acquis').length;
+    const pct = total ? Math.round(acquis/total*100) : 0;
+    const barColor = pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--c-coral)';
+    const activities = (pdt.activities||[]).map((a,i)=>{
+      const color = domainHex[a.domaine]||'#1D9E75';
+      const st = PDT_STATUTS[a.status]||PDT_STATUTS.todo;
+      return `<div style="display:grid;grid-template-columns:32px 1fr auto auto;align-items:start;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border-s)">
+        <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:${color}18;color:${color}">${a.ordre||i+1}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;line-height:1.3">${a.type==='fiche'?'📄':'🧩'} ${a.titre}</div>
+          ${a.pourquoi?`<div style="font-size:12px;color:var(--text-m);margin-top:2px;line-height:1.4">${a.pourquoi}</div>`:''}
+          ${a.adaptation?`<div style="font-size:11px;color:var(--c-amber-d);background:var(--c-amber-l);padding:2px 8px;border-radius:12px;display:inline-block;margin-top:4px">💡 ${a.adaptation}</div>`:''}
+        </div>
+        <button onclick="openEditActivite('${pdt.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;color:var(--text-m);flex-shrink:0;margin-top:2px" title="Modifier cette activité">✏️</button>
+        ${buildStatutSelect(pdt.id,i,a.status||'todo')}
+      </div>`;
+    }).join('');
+    return `<div class="card card-lg mb-3" id="pdt-card-${pdt.id}" style="padding:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div style="background:var(--c-teal-l);color:var(--c-teal-d);border-radius:8px;padding:4px 12px;font-weight:800;font-size:.95rem">PDT ${num}</div>
+          <span style="font-size:13px;color:var(--text-m)">📅 ${pdt.semaine||'Semaine non renseignée'}</span>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <button onclick="imprimerPDT('${pdt.id}')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px" title="Imprimer">🖨️ Imprimer</button>
+          <button onclick="deletePDT('${pdt.id}')" style="background:var(--c-coral-l);color:var(--c-coral-d);border:none;border-radius:8px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:600">✕ Supprimer</button>
+        </div>
+      </div>
+      ${pdt.commentaire?`<div style="background:var(--c-teal-l);border-left:3px solid var(--c-teal);padding:.6rem .9rem;border-radius:var(--rs);margin-bottom:1rem;font-size:13px;color:var(--c-teal-d);line-height:1.5">${pdt.commentaire}</div>`:''}
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+        <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div id="bar-${pdt.id}" style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div id="stat-${pdt.id}" style="font-size:12px;font-weight:700;color:${barColor};white-space:nowrap">${acquis}/${total} acquis</div>
+      </div>
+      ${activities}
+    </div>`;
+  }).join('');
+}
+
+// ---- MODIFIER ACTIVITÉ PDT ----
+let editActPdtId = null;
+let editActIdx = null;
+let editActMode = 'manuel'; // 'manuel' | 'atelier' | 'fiche'
+let editActSelectedItem = null; // {type, id, titre, domaine, pourquoi}
+
+function openEditActivite(pdtId, actIdx){
+  editActPdtId = pdtId;
+  editActIdx = actIdx;
+  editActMode = 'manuel';
+  editActSelectedItem = null;
+
+  const pdt = pdts.find(p=>p.id===pdtId);
+  if(!pdt) return;
+  const a = pdt.activities[actIdx];
+
+  // Remplir le formulaire manuel
+  document.getElementById('edit-act-titre').value = a.titre||'';
+  document.getElementById('edit-act-pourquoi').value = a.pourquoi||'';
+  document.getElementById('edit-act-adaptation').value = a.adaptation||'';
+
+  // Onglet manuel actif par défaut
+  switchEditTab(document.querySelector('[data-tab="manuel"]'), 'manuel');
+
+  document.getElementById('edit-act-save-btn').textContent = 'Enregistrer';
+  openModal('modal-edit-activite');
+}
+
+function switchEditTab(btn, tab){
+  document.querySelectorAll('.edit-act-tab').forEach(b=>{
+    b.style.background = 'none';
+    b.style.color = 'var(--text-m)';
+  });
+  btn.style.background = 'var(--c-teal-l)';
+  btn.style.color = 'var(--c-teal-d)';
+
+  ['manuel','ateliers','fiches'].forEach(t=>{
+    document.getElementById('edit-act-tab-'+t).classList.toggle('hidden', t!==tab);
+  });
+
+  if(tab==='ateliers') renderEditAteliersList();
+  if(tab==='fiches') renderEditFichesList();
+  editActMode = tab;
+}
+
+function renderEditAteliersList(){
+  const search = (document.getElementById('edit-act-search-atelier').value||'').toLowerCase();
+  const list = document.getElementById('edit-act-ateliers-list');
+  let filtered = ateliers;
+  if(search) filtered = filtered.filter(a=>
+    (a.title||'').toLowerCase().includes(search)||
+    (a.domain||'').toLowerCase().includes(search)||
+    (a.objectif||'').toLowerCase().includes(search)
+  );
+  list.innerHTML = filtered.slice(0,50).map(a=>`
+    <div onclick="selectEditItem({type:'atelier',id:'${a.id}',titre:'${(a.title||'').replace(/'/g,"\'")}',domaine:'${a.domain||''}',pourquoi:'${(a.objectif||'').replace(/'/g,"\'").substring(0,100)}'})" 
+      style="padding:.6rem .85rem;border-radius:8px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:background .1s"
+      onmouseover="this.style.background='var(--c-teal-l)'" onmouseout="this.style.background=''">
+      ${a.image_url?`<img src="${a.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0"/>`:'<div style="width:40px;height:40px;background:var(--bg-s);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🧩</div>'}
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:600">${a.title||''}</div>
+        <div style="font-size:11px;color:var(--text-m)">${a.domain||''} ${(a.levels||[]).length?'· '+a.levels.join(', '):''}</div>
+      </div>
+    </div>`).join('') || '<div class="text-sm text-mid">Aucun atelier trouvé.</div>';
+}
+
+function renderEditFichesList(){
+  const list = document.getElementById('edit-act-fiches-list');
+  list.innerHTML = fiches.slice(0,50).map(f=>`
+    <div onclick="selectEditItem({type:'fiche',id:'${f.id}',titre:'${(f.titre||f.title||'Fiche sans titre').replace(/'/g,"\'")}',domaine:'${f.type_fiche||''}',pourquoi:'${(f.description||'').replace(/'/g,"\'").substring(0,100)}'})"
+      style="padding:.6rem .85rem;border-radius:8px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:background .1s"
+      onmouseover="this.style.background='var(--c-blue-l)'" onmouseout="this.style.background=''">
+      <div style="width:40px;height:40px;background:var(--c-blue-l);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📄</div>
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:600">${f.titre||f.title||'Fiche sans titre'}</div>
+        <div style="font-size:11px;color:var(--text-m)">${f.type_fiche||''}</div>
+      </div>
+    </div>`).join('') || '<div class="text-sm text-mid">Aucune fiche disponible.</div>';
+}
+
+function selectEditItem(item){
+  editActSelectedItem = item;
+  // Pré-remplir le formulaire manuel avec les infos de l'item sélectionné
+  document.getElementById('edit-act-titre').value = item.titre;
+  document.getElementById('edit-act-pourquoi').value = item.pourquoi||'';
+  // Switcher vers onglet manuel pour confirmer
+  switchEditTab(document.querySelector('[data-tab="manuel"]'), 'manuel');
+  document.getElementById('edit-act-save-btn').textContent = 'Remplacer par cet atelier';
+  if(item.type==='fiche') document.getElementById('edit-act-save-btn').textContent = 'Remplacer par cette fiche';
+}
+
+async function saveEditActivite(){
+  const pdt = pdts.find(p=>p.id===editActPdtId);
+  if(!pdt) return;
+  const a = pdt.activities[editActIdx];
+
+  const titre = document.getElementById('edit-act-titre').value.trim();
+  if(!titre){ toast('Le titre est obligatoire.'); return; }
+
+  // Mettre à jour l'activité
+  a.titre = titre;
+  a.pourquoi = document.getElementById('edit-act-pourquoi').value.trim();
+  a.adaptation = document.getElementById('edit-act-adaptation').value.trim();
+
+  if(editActSelectedItem){
+    a.type = editActSelectedItem.type;
+    a.ressourceId = editActSelectedItem.type==='atelier' ? 'ATL:'+editActSelectedItem.id : 'FCH:'+editActSelectedItem.id;
+    a.domaine = editActSelectedItem.domaine||a.domaine;
+  }
+
+  await sb.from('plans_travail').update({activities:pdt.activities}).eq('id',editActPdtId);
+  closeModal('modal-edit-activite');
+  renderPDTListe(pdtCurrentEleveId);
+  toast('✅ Activité mise à jour !');
+}
+
+async function deletePDT(id){
+  if(!confirm('Supprimer ce PDT ?')) return;
+  await sb.from('plans_travail').delete().eq('id',id);
+  pdts = pdts.filter(p=>p.id!==id);
+  updateStats();
+  renderPDTListe(pdtCurrentEleveId);
+  renderPDTElevesGrid();
+  toast('PDT supprimé.');
+}
+
+async function updatePDTStatus(pdtId, actIdx, status, selectEl){
+  const pdt = pdts.find(p=>p.id===pdtId); if(!pdt) return;
+  pdt.activities[actIdx].status = status;
+  await sb.from('plans_travail').update({activities:pdt.activities}).eq('id',pdtId);
+
+  // Recalcul barre de progression
+  const total = pdt.activities.length;
+  const acquisCount = pdt.activities.filter(a=>a.status==='acquis').length;
+  const pct = total ? Math.round(acquisCount/total*100) : 0;
+  const barColor = pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--c-coral)';
+  const barEl = document.getElementById('bar-'+pdtId);
+  if(barEl){ barEl.style.width=pct+'%'; barEl.style.background=barColor; }
+  const statEl = document.getElementById('stat-'+pdtId);
+  if(statEl){ statEl.textContent=`${acquisCount}/${total} acquis`; statEl.style.color=barColor; }
+  // Mise à jour couleur select
+  const st = PDT_STATUTS[status]||PDT_STATUTS.todo;
+  selectEl.style.background = st.bg;
+  selectEl.style.color = st.color;
+
+  // Suivi compétences (acquis = niveau 3)
+  const act = pdt.activities[actIdx];
+  const niveau = status==='acquis'?3:status==='lecon'||status==='retravailler'?2:status==='doing'?1:0;
+  const {data:existing} = await sb.from('suivi_competences').select('id,niveau').eq('eleve_id',pdt.eleve_id).eq('activite_titre',act.titre).single();
+  if(existing){
+    if(niveau>existing.niveau) await sb.from('suivi_competences').update({niveau,updated_at:new Date().toISOString()}).eq('id',existing.id);
+  } else {
+    if(niveau>0) await sb.from('suivi_competences').insert([{eleve_id:pdt.eleve_id,domaine:act.domaine,activite_titre:act.titre,niveau}]);
+  }
+  // Log dans suivi_historique
+  if(niveau>0){
+    await sb.from('suivi_historique').insert([{
+      eleve_id: pdt.eleve_id,
+      activite_titre: act.titre,
+      domaine: act.domaine,
+      statut: status,
+      pdt_id: pdtId,
+      semaine: pdt.semaine||''
+    }]);
+  }
+  updateStats();
+}
+
+function renderSelectStudents(){
+  const list=document.getElementById('select-student-list');
+  if(!eleves.length){list.innerHTML=`<div class="text-sm text-mid">Aucun élève — <a href="#" onclick="showSection('eleves',null);openModal('modal-add-eleve');return false;" style="color:var(--c-teal)">ajoutez d'abord un élève</a></div>`;return;}
+  list.innerHTML=`<div class="grid-2">`+eleves.map((e,i)=>{
+    const c=avatarColors[i%avatarColors.length];
+    return`<div data-eleve-id="${e.id}" class="student-card${selectedStudentId===e.id?' selected':''}" onclick="selectStudent('${e.id}',this)">
+      <div class="flex items-center gap-2">
+        <div class="student-avatar" style="width:36px;height:36px;font-size:13px;background:var(--c-${c}-l);color:var(--c-${c}-d)">${e.nom.substring(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:700;font-size:14px">${e.nom}</div><div class="text-xs text-mid">${e.classe||''}</div></div>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function selectStudent(id,el){
+  selectedStudentId=id;
+  document.querySelectorAll('.student-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function generatePDT(){
+  if(!selectedStudentId){toast('Choisissez un élève d\'abord.');return;}
+  if(!ateliers.length){toast('Ajoutez des ateliers à la bibliothèque d\'abord.');return;}
+  const eleve=eleves.find(e=>e.id===selectedStudentId);
+  const semaine=document.getElementById('pdt-semaine').value.trim()||'Semaine en cours';
+  const nbAct=parseInt(document.getElementById('pdt-nb').value)||8;
+  const consignes=document.getElementById('pdt-consignes').value.trim();
+  const resultDiv=document.getElementById('pdt-result');
+  resultDiv.innerHTML=`<div class="card" style="height:100%"><div class="ai-loading"><div class="spinner"></div><div class="text-sm text-mid">L'IA prépare le plan de ${eleve.nom}...</div></div></div>`;
+
+  const ateliersList=ateliers.map(a=>`- [ATL:${a.id}] "${a.title}" (${a.domain}) — ${a.objectif||'non renseigné'} — Niveaux: ${(a.levels||[]).join(', ')||'?'} — TYPE: atelier manipulation`).join('\n');
+  const fichesList=fiches.map(f=>`- [FCH:${f.id}] "${f.title}" (${f.domain}) — ${f.objectif||'exercice papier'} — Niveaux: ${(f.levels||[]).join(', ')||'?'} — TYPE: fiche papier ${f.source==='generee'?'(générée IA)':'(uploadée)'}`).join('\n');
+  const prevPdts=pdts.filter(p=>p.eleve_id===selectedStudentId).slice(-2);
+  const prevContext=prevPdts.length?'\nPDT précédents :\n'+prevPdts.map(p=>`Semaine ${p.semaine}: ${(p.activities||[]).map(a=>`${a.titre} (${a.status==='done'?'réussi':a.status==='partial'?'partiel':'non fait'})`).join(', ')}`).join('\n'):'';
+
+  const ressourcesDispo = ressources.map(r=>`- ${r.nom}${r.description?' ('+r.description+')':''}`).join('\n');
+
+  try{
+    const response=await fetch('/api/ai',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:`Tu es une enseignante spécialisée experte en ULIS. Génère un plan de travail hebdomadaire adapté.
+
+PROFIL : ${eleve.nom} (${eleve.classe||''})
+Difficultés : ${(eleve.difficultes||[]).join(', ')||'non renseignées'}
+Points forts : ${(eleve.forces||[]).join(', ')||'non renseignés'}
+Objectifs PI : ${eleve.objectifs||'non renseignés'}
+Adaptations : ${eleve.adaptations||'non renseignées'}
+${prevContext}
+
+RESSOURCES DISPONIBLES :
+${ateliersList}
+${fichesList?'\nFICHES PAPIER :\n'+fichesList:''}
+
+OUTILS DISPONIBLES EN CLASSE :
+${ressourcesDispo||'(non renseigné)'}
+
+CONSIGNES : Sélectionne exactement ${nbAct} activités adaptées. Alterne ateliers de manipulation et fiches papier. Pour chaque activité, suggère UNIQUEMENT des ressources parmi celles listées ci-dessus qui sont pertinentes. ${consignes}
+
+Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
+{"commentaire":"Introduction personnalisée (2 phrases max)","activites":[{"ressourceId":"id avec préfixe ATL: ou FCH:","titre":"titre","domaine":"domaine","type":"atelier ou fiche","pourquoi":"Pourquoi adapté (1 phrase)","adaptation":"Adaptation spécifique ou chaine vide","ressources":["nom ressource pertinente parmi la liste, ou tableau vide"],"ordre":1}]}`}]})}
+    );
+    const data=await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const result=JSON.parse(data.content[0].text.trim());
+    const pdt={eleve_id:selectedStudentId,eleve_nom:eleve.nom,semaine,commentaire:result.commentaire,activities:result.activites.map(a=>({...a,status:'todo'}))};
+    const {data:saved,error}=await sb.from('plans_travail').insert([pdt]).select();
+    if(error){toast('Erreur sauvegarde : '+error.message,5000);return;}
+    pdts.unshift(saved[0]);
+    document.getElementById('badge-pdts').textContent = pdts.length;
+    updateStats();
+    renderPDTResult(saved[0]);
+    // Mettre à jour pdtCurrentEleveId pour le retour
+    pdtCurrentEleveId = selectedStudentId;
+    toast(`✅ PDT de ${eleve.nom} généré et sauvegardé !`);
+  }catch(e){
+    resultDiv.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">⚠️</div><div>Erreur lors de la génération IA.</div></div></div>`;
+    console.error(e);
+  }
+}
+
+function renderPDTResult(pdt){
+  document.getElementById('pdt-result').innerHTML=`
+    <div class="card card-lg">
+      <div class="flex justify-between items-center mb-2">
+        <div><div class="font-bold" style="font-size:1rem">PDT — ${pdt.eleve_nom}</div><div class="text-sm text-mid">📅 ${pdt.semaine}</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+      ${pdt.commentaire?`<div style="background:var(--c-teal-l);border-left:4px solid var(--c-teal);padding:.75rem 1rem;border-radius:var(--rs);margin-bottom:1rem;font-size:14px;color:var(--c-teal-d)">${pdt.commentaire}</div>`:''}
+      ${(pdt.activities||[]).map((a,i)=>{
+        const color=domainHex[a.domaine]||'#1D9E75';
+        const isFiche = a.type==='fiche';
+        const ficheObj = isFiche ? fiches.find(f=>a.ressourceId===`FCH:${f.id}`) : null;
+        return`<div class="pdt-activity" style="${isFiche?'border-left:3px solid var(--c-blue);':''}">
+          <div class="pdt-num" style="background:${isFiche?'var(--c-blue-l)':color+'22'};color:${isFiche?'var(--c-blue-d)':color}">${a.ordre||i+1}</div>
+          <div class="pdt-content">
+            <div class="pdt-title">${isFiche?'📄 ':'🧩 '}${a.titre}</div>
+            <div class="pdt-obj">${a.pourquoi}</div>
+            ${a.adaptation?`<div class="text-xs mt-1" style="color:var(--c-amber-d);background:var(--c-amber-l);padding:3px 8px;border-radius:4px;display:inline-block">💡 ${a.adaptation}</div>`:''}
+            ${(a.ressources&&a.ressources.length)?`<div class="mt-1">${a.ressources.map(r=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:10px;background:var(--c-teal-l);color:var(--c-teal-d);margin:2px;font-weight:600">⭐ ${r}</span>`).join('')}</div>`:''}
+            ${ficheObj&&ficheObj.file_url?`<div class="mt-1"><a href="${ficheObj.file_url}" target="_blank" class="btn btn-sm" style="font-size:11px;color:var(--c-blue-d);background:var(--c-blue-l);border:none">🖨️ Imprimer la fiche</a></div>`:''}
+          </div>
+          <div style="margin-left:auto;flex-shrink:0">
+            <select class="btn btn-sm btn-secondary" onchange="updateActivityStatus('${pdt.id}',${i},this.value)" style="padding:4px 8px;font-size:12px">
+              <option value="todo"${a.status==='todo'?' selected':''}>À faire</option>
+              <option value="doing"${a.status==='doing'?' selected':''}>En cours</option>
+              <option value="partial"${a.status==='partial'?' selected':''}>Partiel</option>
+              <option value="done"${a.status==='done'?' selected':''}>✓ Réussi</option>
+            </select>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function updateActivityStatus(pdtId,actIdx,status,selectEl){
+  const pdt=pdts.find(p=>p.id===pdtId);if(!pdt)return;
+  pdt.activities[actIdx].status=status;
+  await sb.from('plans_travail').update({activities:pdt.activities}).eq('id',pdtId);
+
+  // suivi compétences
+  const act=pdt.activities[actIdx];
+  const niveau=status==='done'?3:status==='partial'?2:status==='doing'?1:0;
+  const {data:existing}=await sb.from('suivi_competences').select('id,niveau').eq('eleve_id',pdt.eleve_id).eq('activite_titre',act.titre).single();
+  if(existing){
+    if(niveau>existing.niveau)await sb.from('suivi_competences').update({niveau,updated_at:new Date().toISOString()}).eq('id',existing.id);
+  }else{
+    await sb.from('suivi_competences').insert([{eleve_id:pdt.eleve_id,domaine:act.domaine,activite_titre:act.titre,niveau}]);
+  }
+  updateStats();
+}
+
+// ---- SUIVI ----
+function openElevePDTs(eleveId){
+  const eleve = eleves.find(e=>e.id===eleveId);
+  if(!eleve) return;
+  const pdtsEleve = pdts.filter(p=>p.eleve_id===eleveId).slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  document.getElementById('modal-eleve-pdts-title').textContent = `📋 PDT — ${eleve.nom}`;
+  const container = document.getElementById('modal-eleve-pdts-content');
+
+  if(!pdtsEleve.length){
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div>Aucun PDT enregistré pour ${eleve.nom}.</div><div class="text-sm mt-1">Générez un PDT depuis l'onglet "Générer PDT".</div></div>`;
+    openModal('modal-eleve-pdts');
+    return;
+  }
+
+  container.innerHTML = pdtsEleve.map(pdt=>{
+    const done = (pdt.activities||[]).filter(a=>a.status==='done').length;
+    const total = (pdt.activities||[]).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    return `<div style="border:1px solid var(--border);border-radius:var(--rs);margin-bottom:1rem;overflow:hidden">
+      <div style="padding:.75rem 1rem;background:var(--bg-s);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:700;font-size:14px">📅 ${pdt.semaine||'Semaine non renseignée'}</div>
+          <div style="font-size:12px;color:var(--text-m);margin-top:2px">${done}/${total} activités réussies</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.1rem;font-weight:800;color:${pct>=80?'var(--c-teal-d)':pct>=50?'var(--c-amber-d)':'var(--text-m)'}">${pct}%</div>
+          <div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--border-s)'};border-radius:3px"></div>
+          </div>
+        </div>
+      </div>
+      ${pdt.commentaire?`<div style="padding:.6rem 1rem;font-size:13px;color:var(--c-teal-d);background:var(--c-teal-l);border-bottom:1px solid var(--border)">${pdt.commentaire}</div>`:''}
+      <div style="padding:.5rem 1rem">
+        ${(pdt.activities||[]).map((a,i)=>`
+          <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--border-s)">
+            <div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:${domainHex[a.domaine]||'#1D9E75'}22;color:${domainHex[a.domaine]||'#1D9E75'};flex-shrink:0">${a.ordre||i+1}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600">${a.type==='fiche'?'📄':'🧩'} ${a.titre}</div>
+              ${a.adaptation?`<div style="font-size:11px;color:var(--c-amber-d)">💡 ${a.adaptation}</div>`:''}
+            </div>
+            <select onchange="updateActivityStatusFromModal('${pdt.id}',${i},this.value,this)" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:${a.status==='done'?'var(--c-teal-l)':a.status==='partial'?'var(--c-blue-l)':a.status==='doing'?'var(--c-amber-l)':'var(--bg)'};color:${a.status==='done'?'var(--c-teal-d)':a.status==='partial'?'var(--c-blue-d)':a.status==='doing'?'var(--c-amber-d)':'var(--text-m)'};font-weight:600;cursor:pointer">
+              <option value="todo"${a.status==='todo'?' selected':''}>À faire</option>
+              <option value="doing"${a.status==='doing'?' selected':''}>En cours</option>
+              <option value="partial"${a.status==='partial'?' selected':''}>Partiel</option>
+              <option value="done"${a.status==='done'?' selected':''}>✓ Réussi</option>
+            </select>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  openModal('modal-eleve-pdts');
+}
+
+async function updateActivityStatusFromModal(pdtId, actIdx, status, selectEl){
+  await updateActivityStatus(pdtId, actIdx, status);
+  // Mettre à jour la couleur du select dynamiquement
+  const colors = {
+    done: {bg:'var(--c-teal-l)', color:'var(--c-teal-d)'},
+    partial: {bg:'var(--c-blue-l)', color:'var(--c-blue-d)'},
+    doing: {bg:'var(--c-amber-l)', color:'var(--c-amber-d)'},
+    todo: {bg:'var(--bg)', color:'var(--text-m)'}
+  };
+  selectEl.style.background = colors[status].bg;
+  selectEl.style.color = colors[status].color;
+  // Mettre à jour le compteur en haut
+  const pdt = pdts.find(p=>p.id===pdtId);
+  if(pdt){
+    const done = pdt.activities.filter(a=>a.status==='done').length;
+    const total = pdt.activities.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    // Retrouver les éléments stat dans le modal
+    const card = selectEl.closest('[style*="border:1px solid var(--border)"]');
+    if(card){
+      const statEl = card.querySelector('[style*="1.1rem"]');
+      if(statEl) statEl.textContent = pct+'%';
+      const statEl2 = card.querySelector('[style*="12px;color"]');
+      if(statEl2) statEl2.textContent = `${done}/${total} activités réussies`;
+      const bar = card.querySelector('[style*="height:100%"]');
+      if(bar){ bar.style.width = pct+'%'; bar.style.background = pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--border-s)'; }
+    }
+  }
+}
+
+// ---- PÉRIODES ----
+// Périodes scolaires type (modifiables)
+const PERIODES_SCOLAIRES = {
+  P1: { debut: '2024-09-02', fin: '2024-10-18' },
+  P2: { debut: '2024-11-04', fin: '2024-12-20' },
+  P3: { debut: '2025-01-06', fin: '2025-02-14' },
+  P4: { debut: '2025-02-24', fin: '2025-04-11' },
+  P5: { debut: '2025-04-28', fin: '2025-07-04' },
+};
+
+let currentPeriode = 'all'; // 'all' | 'P1'..'P5' | 'custom'
+
+function selectPeriode(btn, value){
+  document.querySelectorAll('.periode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPeriode = value;
+  const customDiv = document.getElementById('periode-custom-inputs');
+  if(value === 'custom'){
+    customDiv.classList.remove('hidden');
+    customDiv.style.display = 'flex';
+  } else {
+    customDiv.classList.add('hidden');
+    customDiv.style.display = 'none';
+    renderSuivi();
+  }
+}
+
+function getPeriodeDates(){
+  if(currentPeriode === 'all') return { debut: null, fin: null, label: 'Toute l'année' };
+  if(currentPeriode === 'custom'){
+    const d = document.getElementById('suivi-periode-debut').value;
+    const f = document.getElementById('suivi-periode-fin').value;
+    const fmt = v => v ? new Date(v).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '';
+    return { debut: d||null, fin: f||null, label: d&&f ? `${fmt(d)} → ${fmt(f)}` : 'Période personnalisée' };
+  }
+  const p = PERIODES_SCOLAIRES[currentPeriode];
+  const fmt = v => new Date(v).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+  return { debut: p.debut, fin: p.fin, label: `${currentPeriode} (${fmt(p.debut)} → ${fmt(p.fin)})` };
+}
+
+// ---- BILAN PDF ----
+async function genererBilanPDF(){
+  const eleveId = document.getElementById('suivi-eleve-select').value;
+  if(!eleveId) return;
+  const eleve = eleves.find(e=>e.id===eleveId);
+  const {debut, fin, label: periodeLabel} = getPeriodeDates();
+
+  // Charger depuis suivi_historique selon la période
+  let query = sb.from('suivi_historique').select('*').eq('eleve_id', eleveId);
+  if(debut) query = query.gte('created_at', debut+'T00:00:00');
+  if(fin)   query = query.lte('created_at', fin+'T23:59:59');
+  const {data:historique} = await query.order('created_at', {ascending:false});
+
+  // Dédoublonner : garder le meilleur statut par activité
+  const seen = {};
+  const statutRank = {acquis:4,lecon:3,retravailler:2,doing:1,todo:0};
+  (historique||[]).forEach(h=>{
+    const key = h.activite_titre;
+    if(!seen[key] || (statutRank[h.statut]||0) > (statutRank[seen[key].statut]||0)){
+      seen[key] = h;
+    }
+  });
+  const suivi = Object.values(seen);
+  const periode = periodeLabel;
+  const pdtsEleve = pdts.filter(p=>p.eleve_id===eleveId);
+
+  // Grouper par domaine
+  const domains = {};
+  (suivi||[]).forEach(s=>{
+    if(!domains[s.domaine]) domains[s.domaine]=[];
+    domains[s.domaine].push(s);
+  });
+
+  // Construire le contenu pour l'IA
+  const competencesText = Object.entries(domains).map(([dom,items])=>
+    `${dom}:
+${items.map(s=>`  - ${s.activite_titre} : ${({acquis:'Acquis',lecon:'Leçon à apprendre',retravailler:'À retravailler',doing:'En cours',todo:'Non fait'})[s.statut]||'Non fait'}`).join('
+')}`
+  ).join('
+
+');
+
+  // Afficher modal avec spinner IA
+  document.getElementById('bilan-eleve-nom').textContent = `${eleve.nom} — ${eleve.classe||''}`;
+  document.getElementById('bilan-periode').textContent = periode;
+  document.getElementById('bilan-commentaire-ia').textContent = 'Génération en cours...';
+  document.getElementById('bilan-competences-content').innerHTML = '<div class="text-sm text-mid">Chargement...</div>';
+  openModal('modal-bilan-pdf');
+
+  // Générer commentaire IA
+  try {
+    const resp = await fetch('/api/ai', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:400,
+        messages:[{role:'user', content:`Tu es enseignant spécialisé ULIS. Rédige un commentaire bilan de fin de période pour le LSU de ${eleve.nom} (${eleve.classe||''}), en 3-4 phrases bienveillantes et précises. Voici les compétences travaillées :
+
+${competencesText}
+
+Profil : ${eleve.objectifs||''}. Adaptations : ${eleve.adaptations||''}.
+
+Réponds uniquement avec le commentaire, sans titre ni introduction.`}]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content||[]).map(c=>c.text||'').join('');
+    document.getElementById('bilan-commentaire-ia').textContent = text || '(commentaire non généré)';
+  } catch(e) {
+    document.getElementById('bilan-commentaire-ia').textContent = '(IA indisponible — rédigez manuellement)';
+  }
+
+  // Rendre le tableau des compétences
+  const _statutStyle = {
+    acquis:      {label:'Acquis ✅',             bg:'#d1fae5',color:'#065f46'},
+    lecon:       {label:'Leçon à apprendre 📚',  bg:'#dbeafe',color:'#1e40af'},
+    retravailler:{label:'À retravailler 🔄',      bg:'#fee2e2',color:'#991b1b'},
+    doing:       {label:'En cours ⏳',            bg:'#fef3c7',color:'#92400e'},
+    todo:        {label:'Non fait',               bg:'#f3f4f6',color:'#6b7280'},
+  };
+  const tableHTML = Object.entries(domains).map(([dom,items])=>`
+    <div style="margin-bottom:1.25rem">
+      <div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:.5rem;padding-bottom:.25rem;border-bottom:2px solid #e5e7eb">${dom}</div>
+      ${items.map(s=>{
+        const st = _statutStyle[s.statut]||_statutStyle.todo;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem .5rem;border-radius:6px;margin-bottom:3px;background:#f9fafb">
+          <span style="font-size:13px">${s.activite_titre}</span>
+          <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${st.bg};color:${st.color};white-space:nowrap">${st.label}</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  document.getElementById('bilan-competences-content').innerHTML = tableHTML || '<div class="text-sm text-mid">Aucune compétence enregistrée.</div>';
+}
+
+function imprimerPDT(pdtId){
+  const pdt = pdts.find(p=>p.id===pdtId);
+  if(!pdt) return;
+  const eleve = eleves.find(e=>e.id===pdt.eleve_id);
+  const nom = eleve ? eleve.nom : 'Élève';
+  const classe = eleve ? (eleve.classe||'') : '';
+
+  const statutBadge = {
+    acquis:      {label:'Acquis',     bg:'#d1fae5',color:'#065f46',symbol:'✅'},
+    lecon:       {label:'Leçon',      bg:'#dbeafe',color:'#1e40af',symbol:'📚'},
+    retravailler:{label:'Retravailler',bg:'#fee2e2',color:'#991b1b',symbol:'🔄'},
+    doing:       {label:'En cours',   bg:'#fef3c7',color:'#92400e',symbol:'⏳'},
+    todo:        {label:'À faire',    bg:'#f3f4f6',color:'#6b7280',symbol:'○'},
+  };
+
+  const activitesHTML = (pdt.activities||[]).map((a,i) => {
+    const st = statutBadge[a.status||'todo'] || statutBadge.todo;
+    const numColor = domainHex[a.domaine] || '#1D9E75';
+    return `
+      <tr style="page-break-inside:avoid">
+        <td style="width:32px;padding:10px 8px 10px 0;vertical-align:top">
+          <div style="width:28px;height:28px;border-radius:50%;background:${numColor}18;color:${numColor};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">${a.ordre||i+1}</div>
+        </td>
+        <td style="padding:10px 12px 10px 0;vertical-align:top;border-bottom:1px solid #f0f0f0">
+          <div style="font-size:13px;font-weight:700;color:#111;margin-bottom:3px">${a.type==='fiche'?'📄':'🧩'} ${a.titre}</div>
+          ${a.pourquoi ? `<div style="font-size:11px;color:#555;margin-bottom:3px;line-height:1.5">${a.pourquoi}</div>` : ''}
+          ${a.adaptation ? `<div style="font-size:10px;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:10px;display:inline-block">💡 ${a.adaptation}</div>` : ''}
+        </td>
+        <td style="padding:10px 0;vertical-align:top;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap">
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:${st.bg};color:${st.color}">${st.symbol} ${st.label}</span>
+        </td>
+      </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>PDT — ${nom} — ${pdt.semaine||''}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:white; color:#111; padding:1.5cm; }
+    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:2px solid #1D9E75; }
+    .header-left .tag { font-size:10px; font-weight:700; color:#1D9E75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.3rem; }
+    .header-left .nom { font-size:1.6rem; font-weight:800; color:#111; }
+    .header-left .semaine { font-size:13px; color:#555; margin-top:.2rem; }
+    .header-right { text-align:right; }
+    .header-right .logo { font-size:1rem; font-weight:800; color:#1D9E75; }
+    .header-right .sub { font-size:10px; color:#999; }
+    .commentaire { background:#f0fdf4; border-left:4px solid #1D9E75; padding:.75rem 1rem; border-radius:6px; margin-bottom:1.5rem; font-size:12px; color:#065f46; line-height:1.6; }
+    table { width:100%; border-collapse:collapse; }
+    .legende { display:flex; gap:1.5rem; margin-top:1.5rem; padding-top:.75rem; border-top:1px solid #e5e7eb; flex-wrap:wrap; }
+    .legende-item { display:flex; align-items:center; gap:5px; font-size:10px; color:#555; }
+    .legende-dot { width:10px; height:10px; border-radius:50%; }
+    .footer { margin-top:1rem; text-align:center; font-size:9px; color:#bbb; }
+    @media print {
+      body { padding:.8cm 1cm; }
+      @page { size:A4 portrait; margin:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="tag">Plan de travail individualisé</div>
+      <div class="nom">${nom}${classe?' <span style="font-size:1rem;color:#555;font-weight:500">· '+classe+'</span>':''}</div>
+      <div class="semaine">📅 ${pdt.semaine||'Semaine non renseignée'}</div>
+    </div>
+    <div class="header-right">
+      <div class="logo">PDT ULIS</div>
+      <div class="sub">pdt.ulisbox.fr</div>
+    </div>
+  </div>
+  ${pdt.commentaire ? `<div class="commentaire">${pdt.commentaire}</div>` : ''}
+  <table>
+    <tbody>${activitesHTML}</tbody>
+  </table>
+  <div class="legende">
+    <div class="legende-item"><div class="legende-dot" style="background:#10b981"></div> Acquis</div>
+    <div class="legende-item"><div class="legende-dot" style="background:#f59e0b"></div> En cours</div>
+    <div class="legende-item"><div class="legende-dot" style="background:#3b82f6"></div> Leçon à apprendre</div>
+    <div class="legende-item"><div class="legende-dot" style="background:#ef4444"></div> À retravailler</div>
+    <div class="legende-item"><div class="legende-dot" style="background:#d1d5db"></div> À faire</div>
+  </div>
+  <div class="footer">Généré par PDT ULIS · pdt.ulisbox.fr</div>
+  <script>window.onload=()=>{window.print();}<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+function imprimerBilan(){
+  document.body.classList.add('printing-bilan');
+  window.print();
+  setTimeout(()=>document.body.classList.remove('printing-bilan'), 1000);
+}
+
+function renderSuiviSelect(){
+  const sel=document.getElementById('suivi-eleve-select');
+  sel.innerHTML='<option value="">— Choisir —</option>'+eleves.map(e=>`<option value="${e.id}">${e.nom}</option>`).join('');
+}
+
+async function renderSuivi(){
+  const id=document.getElementById('suivi-eleve-select').value;
+  const content=document.getElementById('suivi-content');
+  const btnBilan = document.getElementById('btn-bilan-pdf');
+  if(!id){
+    content.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div>Sélectionnez un élève</div></div>`;
+    if(btnBilan) btnBilan.classList.add('hidden');
+    return;
+  }
+  if(btnBilan) btnBilan.classList.remove('hidden');
+  const eleve=eleves.find(e=>e.id===id);
+  // Charger depuis suivi_historique selon la période sélectionnée
+  const {debut:pdebut, fin:pfin} = getPeriodeDates();
+  let suiviQuery = sb.from('suivi_historique').select('*').eq('eleve_id',id);
+  if(pdebut) suiviQuery = suiviQuery.gte('created_at', pdebut+'T00:00:00');
+  if(pfin)   suiviQuery = suiviQuery.lte('created_at', pfin+'T23:59:59');
+  const {data:historiqueRaw} = await suiviQuery.order('created_at',{ascending:false});
+  // Dédoublonner : meilleur statut par activité
+  const _seen = {};
+  const _rank = {acquis:4,lecon:3,retravailler:2,doing:1,todo:0};
+  (historiqueRaw||[]).forEach(h=>{ if(!_seen[h.activite_titre]||(_rank[h.statut]||0)>(_rank[_seen[h.activite_titre].statut]||0)) _seen[h.activite_titre]=h; });
+  const suivi = Object.values(_seen).map(h=>({
+    domaine: h.domaine,
+    activite_titre: h.activite_titre,
+    niveau: {acquis:3,lecon:2,retravailler:2,doing:1,todo:0}[h.statut]||0,
+    statut: h.statut
+  }));
+  const pdtsEleve=pdts.filter(p=>p.eleve_id===id);
+  if(!pdtsEleve.length){content.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div>Aucun PDT généré pour ${eleve.nom}.</div></div>`;return;}
+
+  const domains=[...new Set((suivi||[]).map(s=>s.domaine))];
+  const bgColors=['white','var(--c-amber-l)','var(--c-blue-l)','var(--c-teal-l)'];
+  const borderColors=['var(--border)','var(--c-amber)','var(--c-blue-m)','var(--c-teal)'];
+  const statutEmoji = {acquis:'✅',lecon:'📚',retravailler:'🔄',doing:'⏳',todo:''};
+
+  content.innerHTML=`
+    <div class="card card-lg mb-2">
+      <div class="font-bold mb-1" style="font-size:.95rem">Synthèse — ${eleve.nom}</div>
+      <div class="text-sm text-mid mb-2">${pdtsEleve.length} PDT · ${pdtsEleve.reduce((a,p)=>a+(p.activities||[]).filter(x=>x.status==='done').length,0)} activités réussies</div>
+      ${domains.map(domain=>{
+        const items=(suivi||[]).filter(s=>s.domaine===domain);
+        return`<div class="mb-2">
+          <div style="font-weight:700;font-size:13px;color:var(--text-m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">${domain}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${items.map(s=>`<div style="padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${bgColors[s.niveau]};border:1px solid ${borderColors[s.niveau]}">
+              ${(statutEmoji[s.statut]||['○','◑','◑','✓'][s.niveau])} ${s.activite_titre}
+            </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card card-lg">
+      <div class="font-bold mb-2" style="font-size:.95rem">Historique des PDT</div>
+      ${pdtsEleve.slice().reverse().map(pdt=>{
+        const done=(pdt.activities||[]).filter(a=>a.status==='done').length;
+        const total=(pdt.activities||[]).length;
+        const pct=total?Math.round(done/total*100):0;
+        return`<div style="border:1px solid var(--border);border-radius:var(--rs);padding:.85rem;margin-bottom:8px">
+          <div class="flex justify-between items-center mb-1">
+            <div style="font-weight:700;font-size:14px">📅 ${pdt.semaine}</div>
+            <div class="text-sm" style="color:${pct>=80?'var(--c-teal-d)':pct>=50?'var(--c-amber-d)':'var(--text-m)'};font-weight:700">${done}/${total} (${pct}%)</div>
+          </div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--c-teal)':pct>=50?'var(--c-amber)':'var(--border-s)'};border-radius:3px"></div>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1">
+            ${(pdt.activities||[]).map(a=>`<span class="text-xs" style="padding:2px 8px;border-radius:10px;background:${a.status==='done'?'var(--c-teal-l)':a.status==='partial'?'var(--c-blue-l)':a.status==='doing'?'var(--c-amber-l)':'var(--bg)'};color:${a.status==='done'?'var(--c-teal-d)':a.status==='partial'?'var(--c-blue-d)':a.status==='doing'?'var(--c-amber-d)':'var(--text-l)'}">${a.titre}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ---- IMPORT PI ----
+async function handlePIUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  document.getElementById('pi-analyze-status').classList.remove('hidden');
+  document.getElementById('pi-upload-zone').style.opacity = '.5';
+  document.getElementById('pi-upload-zone').style.pointerEvents = 'none';
+
+  try {
+    let messageContent = [];
+
+    if (file.type === 'application/pdf') {
+      // Convertit le PDF en images via PDF.js puis envoie les pages à Claude
+      const images = await pdfToImages(file, 3); // max 3 premières pages
+      messageContent = [
+        ...images.map(imgData => ({
+          type:'image',
+          source:{type:'base64', media_type:'image/jpeg', data:imgData}
+        })),
+        {type:'text', text: PIPrompt()}
+      ];
+    } else {
+      const base64 = await fileToBase64(file);
+      const mediaType = file.type;
+      messageContent = [
+        {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
+        {type:'text', text: PIPrompt()}
+      ];
+    }
+
+    const response = await fetch('/api/ai', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user', content:messageContent}]})
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content[0].text.trim();
+    const result = JSON.parse(text);
+
+    if (result.prenom) document.getElementById('eleve-nom').value = result.prenom;
+    if (result.classe) document.getElementById('eleve-classe').value = result.classe;
+    if (result.difficultes) document.getElementById('eleve-difficultes').value = result.difficultes;
+    if (result.forces) document.getElementById('eleve-forces').value = result.forces;
+    if (result.objectifs) document.getElementById('eleve-objectifs').value = result.objectifs;
+    if (result.adaptations) document.getElementById('eleve-adaptations').value = result.adaptations;
+    toast('✨ PI analysé ! Vérifiez et complétez les informations.');
+  } catch(e) {
+    console.error('Erreur PI:', e);
+    toast('Analyse PI indisponible — remplissez manuellement.', 4000);
+  }
+  document.getElementById('pi-analyze-status').classList.add('hidden');
+  document.getElementById('pi-upload-zone').style.opacity = '1';
+  document.getElementById('pi-upload-zone').style.pointerEvents = 'auto';
+}
+
+// Convertit les N premières pages d'un PDF en images base64 via PDF.js
+async function pdfToImages(file, maxPages = 3) {
+  // Charge PDF.js dynamiquement
+  if (!window.pdfjsLib) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  const numPages = Math.min(pdf.numPages, maxPages);
+  const images = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({scale: 1.5});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({canvasContext: ctx, viewport}).promise;
+    // Convertit en JPEG base64 (sans le préfixe data:...)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    images.push(dataUrl.split(',')[1]);
+  }
+  return images;
+}
+
+function PIPrompt() {
+  return `Tu es expert en éducation spécialisée ULIS. Lis ce document PI (Projet Individualisé) et extrais les informations clés. Réponds UNIQUEMENT en JSON valide sans texte avant/après ni backticks :
+{"prenom":"Prénom de l'élève","classe":"Classe de rattachement","difficultes":"Liste des difficultés séparées par des virgules","forces":"Points forts séparés par des virgules","objectifs":"Résumé des objectifs prioritaires du PI en 2-4 phrases","adaptations":"Adaptations et aménagements nécessaires en 1-2 phrases"}
+Si une information est absente du document, mets une chaîne vide pour ce champ.`;
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('Lecture échouée'));
+    r.readAsDataURL(file);
+  });
+}
+
+// ---- IMPORT LOT ATELIERS ----
+let batchQueue = [];
+
+async function handleBatchUpload(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+
+  batchQueue = files.map(f => ({file:f, status:'pending', data:null}));
+  document.getElementById('batch-step-1').classList.add('hidden');
+  document.getElementById('batch-step-2').classList.remove('hidden');
+
+  const total = files.length;
+  let done = 0;
+  document.getElementById('batch-progress-label').textContent = `0 / ${total} analysés...`;
+
+  for (let i = 0; i < batchQueue.length; i++) {
+    const item = batchQueue[i];
+    renderBatchItem(i, 'analyzing');
+    try {
+      const rawData = await fileToBase64(item.file);
+      const compressed = await compressImage('data:' + item.file.type + ';base64,' + rawData, 800, 0.6);
+      const base64 = compressed.split(',')[1];
+      const mediaType = 'image/jpeg';
+      const response = await fetch('/api/ai', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
+          {type:'text', text:`Tu es expert en pédagogie ULIS. Analyse cette photo d'atelier. Choisis le domaine parmi : ${DOMAINE_LISTE_IA}. Réponds UNIQUEMENT en JSON valide sans backticks :
+{"titre":"Nom court (max 6 mots)","domaine":"domaine exact de la liste","objectif":"Objectif pédagogique (1-2 phrases)","niveaux":"ex: CP, CE1","duree":20,"notes":""}`}
+        ]}]})
+      });
+      const data = await response.json();
+      const result = JSON.parse(data.content[0].text.trim());
+      item.data = result;
+      item.imageData = compressed;
+      item.status = 'done';
+    } catch(e) {
+      item.status = 'error';
+    }
+    done++;
+    const pct = Math.round(done / total * 100);
+    document.getElementById('batch-progress-bar').style.width = pct + '%';
+    document.getElementById('batch-progress-label').textContent = `${done} / ${total} analysés`;
+    renderBatchItem(i, item.status);
+  }
+
+  document.getElementById('batch-progress-label').textContent = `✅ ${total} ateliers analysés — vérifiez et corrigez si besoin`;
+  document.getElementById('batch-save-btn').style.display = 'inline-flex';
+}
+
+function renderBatchItem(i, status) {
+  const item = batchQueue[i];
+  const container = document.getElementById('batch-results');
+  const existing = document.getElementById('batch-item-' + i);
+
+  const html = `<div id="batch-item-${i}" style="background:var(--card);border:1px solid ${status==='error'?'var(--c-coral)':'var(--border)'};border-radius:var(--rs);overflow:hidden">
+    <div style="display:flex;gap:0">
+      ${item.imageData ? `<img src="${item.imageData}" style="width:80px;height:80px;object-fit:cover;flex-shrink:0">` : `<div style="width:80px;height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.5rem">${status==='analyzing'?'<div class="spinner" style="width:20px;height:20px;border-width:2px"></div>':'⚠️'}</div>`}
+      <div style="padding:.6rem .75rem;flex:1;min-width:0">
+        ${status==='analyzing' ? `<div class="text-sm text-mid">Analyse en cours...</div>` :
+          status==='error' ? `<div style="color:var(--c-coral-d);font-size:13px">Erreur d'analyse</div>` :
+          `<input type="text" value="${item.data.titre||''}" onchange="batchQueue[${i}].data.titre=this.value" style="font-weight:700;font-size:13px;padding:3px 6px;margin-bottom:4px;width:100%">
+          <select onchange="batchQueue[${i}].data.domaine=this.value" style="font-size:12px;padding:3px 6px;width:100%">
+            ${['Mathématiques','Lecture / Langage','Motricité fine','Autonomie','Socio-émotionnel','Sciences / Découverte',"Arts / Créativité","Production d'écrits / Écriture",'Vie pratique'].map(d=>`<option${item.data.domaine===d?' selected':''}>${d}</option>`).join('')}
+          </select>
+          <div style="font-size:11px;color:var(--text-m);margin-top:4px">${item.data.objectif||''}</div>`
+        }
+      </div>
+    </div>
+  </div>`;
+
+  if (existing) { existing.outerHTML = html; }
+  else { container.insertAdjacentHTML('beforeend', html); }
+}
+
+async function saveBatchAteliers() {
+  const btn = document.getElementById('batch-save-btn');
+  btn.textContent = 'Enregistrement...'; btn.disabled = true;
+  const toSave = batchQueue.filter(item => item.status === 'done' && item.data);
+  let saved = 0;
+
+  for (const item of toSave) {
+    try {
+      let image_url = null;
+      if (item.imageData) {
+        // Compresse à 800px avant upload (~100-150 KB)
+        const compressedForStorage = await compressImage(item.imageData, 800, 0.75);
+        const blob = await (await fetch(compressedForStorage)).blob();
+        const fileName = `atelier-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        const {data:up} = await sb.storage.from('ateliers-photos').upload(fileName, blob, {contentType:'image/jpeg'});
+        if (up) { const {data:url} = sb.storage.from('ateliers-photos').getPublicUrl(fileName); image_url = url.publicUrl; }
+      }
+      const row = {title:item.data.titre, domain:item.data.domaine, objectif:item.data.objectif, levels:(item.data.niveaux||'').split(',').map(s=>s.trim()).filter(Boolean), duree:item.data.duree||20, notes:item.data.notes||'', image_url};
+      const {data} = await sb.from('ateliers').insert([row]).select();
+      if (data) { ateliers.unshift(data[0]); saved++; }
+    } catch(e) { console.error(e); }
+  }
+
+  updateStats();
+  closeModal('modal-batch-ateliers');
+  renderAteliers();
+  toast(`✅ ${saved} ateliers enregistrés dans la bibliothèque !`);
+
+  // reset
+  batchQueue = [];
+  document.getElementById('batch-step-1').classList.remove('hidden');
+  document.getElementById('batch-step-2').classList.add('hidden');
+  document.getElementById('batch-results').innerHTML = '';
+  document.getElementById('batch-progress-bar').style.width = '0%';
+  document.getElementById('batch-file-input').value = '';
+  btn.textContent = '✅ Tout enregistrer'; btn.disabled = false;
+}
+
+// ---- DRAG & DROP ----
+const uz=document.getElementById('upload-zone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{
+  e.preventDefault();uz.classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/')){
+    const input=document.getElementById('file-input');
+    const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+    handleImageUpload(input);
+  }
+});
+
+// ---- INIT ----
+loadAll().then(()=>{
+  renderAteliers();
+});
+
+// ---- MATÉRIEL & AIDES ----
+let ressources = [];
+let currentRessourcePhoto = null;
+
+async function loadMateriel(){
+  const {data,error} = await sb.from('ressources').select('*').order('nom');
+  ressources = data||[];
+  document.getElementById('badge-materiel').textContent = ressources.length;
+}
+
+function renderMaterielSynthese(){
+  const content = document.getElementById('mat-synthese-content');
+  if(!ressources.length){ content.innerHTML='<div class="text-sm text-mid">Aucune ressource référencée.</div>'; return; }
+  content.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px">${ressources.map(r=>`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--c-teal-l);color:var(--c-teal-d);font-weight:600">📦 ${r.nom}</span>`).join('')}</div>`;
+}
+
+function renderMaterielList(){
+  const list = document.getElementById('ressources-list');
+  if(!ressources.length){ list.innerHTML=`<div class="empty"><div class="empty-icon">📦</div><div>Aucun outil référencé.</div><div class="text-sm mt-1">Ajoutez les outils disponibles dans votre classe.</div></div>`; return; }
+  list.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+    ${ressources.map(r=>`<div style="border-radius:var(--rs);border:1px solid var(--border);overflow:hidden;background:var(--bg)">
+      ${r.photo_url?`<img src="${r.photo_url}" style="width:100%;height:110px;object-fit:cover"/>`:
+        `<div style="width:100%;height:60px;background:var(--c-teal-l);display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div>`}
+      <div style="padding:.75rem">
+        <div style="font-size:13px;font-weight:600;margin-bottom:${r.description?'.25rem':'0'}">${r.nom}</div>
+        ${r.description?`<div style="font-size:12px;color:var(--text-m)">${r.description}</div>`:''}
+        <div style="margin-top:.5rem;display:flex;justify-content:flex-end;gap:.5rem">
+          <button onclick="openEditRessource('${r.id}')" style="font-size:11px;background:var(--c-teal-l);border:none;cursor:pointer;color:var(--c-teal-d);padding:3px 10px;border-radius:6px;font-weight:600">✏️ Modifier</button>
+          <button onclick="deleteRessource('${r.id}')" style="font-size:11px;background:none;border:none;cursor:pointer;color:var(--text-l)">✕ Supprimer</button>
+        </div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderAidesList(){ renderMaterielList(); }
+
+function setMatTab(btn){}
+
+// Photo ressource
+function handleMatPhoto(input, type){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    currentRessourcePhoto = data;
+    document.getElementById('ressource-photo-img').src = data;
+    document.getElementById('ressource-photo-preview').classList.remove('hidden');
+    document.getElementById('ressource-upload-label').classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadMatPhoto(imageData, prefix){
+  const compressed = await compressImage(imageData, 600, 0.75);
+  const blob = await(await fetch(compressed)).blob();
+  const fileName = `${prefix}-${Date.now()}.jpg`;
+  const {data:up} = await sb.storage.from('ressources-photos').upload(fileName, blob, {contentType:'image/jpeg'});
+  if(up){ const {data:url} = sb.storage.from('ressources-photos').getPublicUrl(fileName); return url.publicUrl; }
+  return null;
+}
+
+function resetMatForm(){}
+function resetAideForm(){}
+
+function resetRessourceForm(){
+  document.getElementById('ressource-photo-preview').classList.add('hidden');
+  document.getElementById('ressource-upload-label').classList.remove('hidden');
+  document.getElementById('ressource-photo-input').value='';
+  currentRessourcePhoto = null;
+}
+
+async function saveRessource(){
+  const nom = document.getElementById('ressource-nom').value.trim();
+  if(!nom){ toast('Nom obligatoire','error'); return; }
+  let photo_url = null;
+  if(currentRessourcePhoto) photo_url = await uploadMatPhoto(currentRessourcePhoto, 'ressource');
+  const row = {nom, description: document.getElementById('ressource-desc').value.trim(), photo_url};
+  const {data,error} = await sb.from('ressources').insert([row]).select();
+  if(error){ toast('Erreur : '+error.message,'error'); return; }
+  ressources.push(data[0]);
+  ressources.sort((a,b)=>a.nom.localeCompare(b.nom));
+  document.getElementById('badge-materiel').textContent = ressources.length;
+  closeModal('modal-add-ressource');
+  renderMaterielList();
+  renderMaterielSynthese();
+  ['ressource-nom','ressource-desc'].forEach(id=>document.getElementById(id).value='');
+  resetRessourceForm();
+  toast('⭐ Outil ajouté !');
+}
+
+
+let editRessourceId = null;
+let editRessourceNewPhoto = null;
+
+function openEditRessource(id){
+  const r = ressources.find(x=>x.id===id);
+  if(!r) return;
+  editRessourceId = id;
+  editRessourceNewPhoto = null;
+  document.getElementById('edit-ressource-nom').value = r.nom;
+  document.getElementById('edit-ressource-desc').value = r.description||'';
+  const img = document.getElementById('edit-ressource-photo-img');
+  const preview = document.getElementById('edit-ressource-photo-preview');
+  const label = document.getElementById('edit-ressource-upload-label');
+  if(r.photo_url){
+    img.src = r.photo_url;
+    preview.classList.remove('hidden');
+    label.classList.add('hidden');
+  } else {
+    preview.classList.add('hidden');
+    label.classList.remove('hidden');
+  }
+  openModal('modal-edit-ressource');
+}
+
+function handleEditRessourcePhoto(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    editRessourceNewPhoto = e.target.result;
+    document.getElementById('edit-ressource-photo-img').src = e.target.result;
+    document.getElementById('edit-ressource-photo-preview').classList.remove('hidden');
+    document.getElementById('edit-ressource-upload-label').classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function updateRessource(){
+  const nom = document.getElementById('edit-ressource-nom').value.trim();
+  if(!nom){ toast('Nom obligatoire','error'); return; }
+  const description = document.getElementById('edit-ressource-desc').value.trim();
+  const r = ressources.find(x=>x.id===editRessourceId);
+  let photo_url = r.photo_url;
+  if(editRessourceNewPhoto) photo_url = await uploadMatPhoto(editRessourceNewPhoto, 'ressource');
+  const {error} = await sb.from('ressources').update({nom, description, photo_url}).eq('id', editRessourceId);
+  if(error){ toast('Erreur : '+error.message,'error'); return; }
+  r.nom = nom; r.description = description; r.photo_url = photo_url;
+  closeModal('modal-edit-ressource');
+  renderMaterielList();
+  renderMaterielSynthese();
+  toast('✅ Outil modifié !');
+}
+
+async function deleteRessource(id){
+  if(!confirm('Supprimer cet outil ?'))return;
+  await sb.from('ressources').delete().eq('id',id);
+  ressources = ressources.filter(r=>r.id!==id);
+  document.getElementById('badge-materiel').textContent = ressources.length;
+  renderMaterielList();
+  renderMaterielSynthese();
+  toast('Outil supprimé.');
+}
+
+function saveMateriel(){ saveRessource(); }
+function saveAide(){ saveRessource(); }
+
+let fiches = [];
+let fichesFilter = 'all';
+let lastGeneratedFiche = null;
+
+async function loadFiches(){
+  const {data} = await sb.from('fiches').select('*').order('created_at',{ascending:false});
+  fiches = data||[];
+  document.getElementById('badge-fiches').textContent = fiches.length;
+}
+
+function setFicheFilter(btn){
+  document.querySelectorAll('.fiche-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  fichesFilter = btn.dataset.type;
+  renderFiches();
+}
+
+function renderFiches(){
+  const grid = document.getElementById('fiches-grid');
+  const filtered = fichesFilter==='all' ? fiches : fiches.filter(f=>f.source===fichesFilter);
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📄</div><div>Aucune fiche${fichesFilter!=='all'?' dans cette catégorie':''}.</div></div>`;
+    return;
+  }
+  const typeLabels = {trous:'À trous',calcul:'Calcul',comprehension:'Compréhension',coloriage:'Coloriage',memoire:'Mémoire',discrimination:'Discrimination',sequençage:'Séquençage',motricite:'Graphisme',exercice:'Exercice',cognitif:'Cognitif',generee:'Générée IA'};
+  grid.innerHTML = filtered.map(f=>`
+    <div class="card" style="border-top:3px solid ${domainHex[f.domain]||'var(--c-teal)'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem">
+        <div style="font-family:'Nunito';font-weight:700;font-size:14px;line-height:1.3;flex:1">${f.title}</div>
+        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${f.source==='generee'?'var(--c-purple-l)':'var(--c-blue-l)'};color:${f.source==='generee'?'var(--c-purple-d)':'var(--c-blue-d)'};flex-shrink:0;margin-left:6px;font-weight:700">${f.source==='generee'?'✨ IA':'📎 Upload'}</span>
+      </div>
+      <div class="atelier-tags mb-1">
+        ${domainTag(f.domain)}
+        ${(f.levels||[]).slice(0,2).map(l=>`<span class="tag" style="background:var(--bg);color:var(--text-m);border:1px solid var(--border)">${l}</span>`).join('')}
+        ${f.type_fiche?`<span class="tag tag-amber">${typeLabels[f.type_fiche]||f.type_fiche}</span>`:''}
+      </div>
+      ${f.objectif?`<div class="text-xs text-mid">${f.objectif.substring(0,100)}${f.objectif.length>100?'…':''}</div>`:''}
+      ${f.notes?`<div class="text-xs text-mid mt-1">💡 ${f.notes}</div>`:''}
+      <div class="flex gap-1 mt-2">
+        ${f.file_url?`<a href="${f.file_url}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:12px">👁 Voir</a>`:''}
+        ${f.source==='generee'&&f.file_url?`<button class="btn btn-sm" style="color:var(--c-teal-d);background:var(--c-teal-l);border:none;font-size:12px" onclick="printFiche('${f.id}')">🖨️ Imprimer</button>`:''}
+        <button class="btn btn-sm" style="color:var(--c-coral-d);background:var(--c-coral-l);border:none;font-size:12px;margin-left:auto" onclick="deleteFiche('${f.id}')">Supprimer</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteFiche(id){
+  if(!confirm('Supprimer cette fiche ?'))return;
+  await sb.from('fiches').delete().eq('id',id);
+  fiches = fiches.filter(f=>f.id!==id);
+  document.getElementById('badge-fiches').textContent = fiches.length;
+  renderFiches();
+  toast('Fiche supprimée.');
+}
+
+// Upload fiche existante
+async function handleFicheUpload(input){
+  const file = input.files[0]; if(!file) return;
+  document.getElementById('fiche-analyze-status').classList.remove('hidden');
+  document.getElementById('fiche-upload-zone').style.opacity='.5';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='none';
+  try{
+    let messageContent = [];
+    if(file.type==='application/pdf'){
+      const images = await pdfToImages(file, 2);
+      messageContent = [...images.map(d=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:d}})),{type:'text',text:ficheAnalyzePrompt()}];
+    } else {
+      const raw = await fileToBase64(file);
+      const compressed = await compressImage('data:'+file.type+';base64,'+raw, 800, 0.7);
+      messageContent = [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:compressed.split(',')[1]}},{type:'text',text:ficheAnalyzePrompt()}];
+    }
+    const response = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:messageContent}]})});
+    const data = await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const result = JSON.parse(data.content[0].text.trim());
+    if(result.titre) document.getElementById('fiche-title').value=result.titre;
+    if(result.domaine){ const s=document.getElementById('fiche-domain'); for(let o of s.options) if(o.value===result.domaine){s.value=result.domaine;break;} }
+    if(result.niveaux) document.getElementById('fiche-levels').value=result.niveaux;
+    if(result.type){ const s=document.getElementById('fiche-type'); for(let o of s.options) if(o.value===result.type){s.value=result.type;break;} }
+    if(result.notes) document.getElementById('fiche-notes').value=result.notes;
+    toast('✨ Fiche analysée !');
+  } catch(e){ toast('Analyse impossible — remplissez manuellement.',4000); console.error(e); }
+  document.getElementById('fiche-analyze-status').classList.add('hidden');
+  document.getElementById('fiche-upload-zone').style.opacity='1';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='auto';
+}
+
+function ficheAnalyzePrompt(){
+  return`Tu es expert en pédagogie ULIS. Analyse cette fiche d'exercice scolaire. Réponds UNIQUEMENT en JSON valide sans backticks :
+{"titre":"Titre court de la fiche","domaine":"Un parmi : ${DOMAINE_LISTE_IA}, Mémoire et attention, Discrimination visuelle, Séquençage / Logique, Raisonnement","niveaux":"ex: CP, CE1","type":"Un parmi : trous, calcul, comprehension, coloriage, memoire, discrimination, sequençage, motricite, exercice","notes":"Remarque ou adaptation si pertinent (sinon chaine vide)","objectif":"Objectif pédagogique (1 phrase)"}`;
+}
+
+async function saveFiche(){
+  const title=document.getElementById('fiche-title').value.trim();
+  const domain=document.getElementById('fiche-domain').value;
+  if(!title||!domain){toast('Merci de renseigner le titre et le domaine.');return;}
+  const file=document.getElementById('fiche-file-input').files[0];
+  let file_url=null;
+  if(file){
+    let blob;
+    if(file.type==='application/pdf'){
+      blob=file;
+    } else {
+      const raw=await fileToBase64(file);
+      const comp=await compressImage('data:'+file.type+';base64,'+raw,1200,0.8);
+      blob=await(await fetch(comp)).blob();
+    }
+    const fileName=`fiche-${Date.now()}.${file.type==='application/pdf'?'pdf':'jpg'}`;
+    const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:file.type==='application/pdf'?'application/pdf':'image/jpeg'});
+    if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);file_url=url.publicUrl;}
+  }
+  const row={title,domain,type_fiche:document.getElementById('fiche-type').value,objectif:'',levels:document.getElementById('fiche-levels').value.split(',').map(s=>s.trim()).filter(Boolean),notes:document.getElementById('fiche-notes').value.trim(),file_url,source:'upload'};
+  const {data,error}=await sb.from('fiches').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  fiches.unshift(data[0]);
+  document.getElementById('badge-fiches').textContent=fiches.length;
+  closeModal('modal-add-fiche');
+  renderFiches();
+  ['fiche-title','fiche-levels','fiche-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fiche-domain').value='';
+  document.getElementById('fiche-file-input').value='';
+  document.getElementById('fiche-upload-zone').style.opacity='1';
+  document.getElementById('fiche-upload-zone').style.pointerEvents='auto';
+  toast('✅ Fiche enregistrée !');
+}
+
+// Génération IA de fiche
+async function generateFiche(){
+  const domain=document.getElementById('gen-domain').value;
+  const type=document.getElementById('gen-type').value;
+  if(!domain||!type){toast('Choisissez un domaine et un type.');return;}
+  const levels=document.getElementById('gen-levels').value.trim()||'CE1';
+  const theme=document.getElementById('gen-theme').value.trim();
+  const consignes=document.getElementById('gen-consignes').value.trim();
+
+  document.getElementById('gen-loading').classList.remove('hidden');
+  document.getElementById('gen-preview').classList.add('hidden');
+  document.getElementById('gen-save-btn').style.display='none';
+
+  const typeDesc={trous:'exercice à trous avec des blancs à compléter',calcul:'exercice de calcul avec opérations',comprehension:'texte court suivi de questions de compréhension',coloriage:'activité de coloriage avec consignes simples et formes à colorier',memoire:'exercice de mémoire visuelle (mémoriser puis retrouver)',discrimination:'exercice de discrimination visuelle (trouver l\'intrus, les différences, les similaires)',sequençage:'exercice de séquençage ou logique (remettre dans l\'ordre, trouver la suite)',motricite:'exercice de graphisme avec tracés à reproduire ou compléter'};
+
+  try{
+    const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:`Tu es une enseignante spécialisée ULIS experte en adaptations pédagogiques. Crée une fiche d'exercices A4 adaptée pour un élève de niveau ${levels}.
+
+Domaine : ${domain}
+Type : ${typeDesc[type]||type}
+${theme?'Thème : '+theme:''}
+Niveau : ${levels}
+${consignes?'Consignes particulières : '+consignes:''}
+
+Génère une fiche complète en HTML pur (pas de doctype, juste le contenu) avec :
+- Format A4 (max-width 794px, padding 2cm)
+- Police lisible (Arial ou sans-serif), taille min 14px pour les consignes élève
+- Titre de la fiche en haut (domaine + thème)
+- Consignes claires et courtes
+- 4 à 6 exercices adaptés au niveau ${levels}
+- Espaces suffisants pour écrire/dessiner
+- Style imprimable (fond blanc, pas de couleurs trop sombres)
+- NOM : ______ DATE : ______ en haut à droite
+Pour les fonctions cognitives : utilise des symboles simples (★ ● ▲ ■) plutôt que du texte complexe.
+Réponds UNIQUEMENT avec le HTML de la fiche, sans explication avant/après.`}]})
+    });
+    const data=await response.json();
+    if(data.error) throw new Error(data.error.message);
+    const html=data.content[0].text.trim();
+    lastGeneratedFiche={html,domain,type,levels,theme};
+    document.getElementById('gen-preview-content').innerHTML=html;
+    document.getElementById('gen-preview').classList.remove('hidden');
+    document.getElementById('gen-save-btn').style.display='inline-flex';
+    toast('✨ Fiche générée ! Vérifiez l\'aperçu avant de sauvegarder.');
+  } catch(e){ toast('Erreur génération IA.',4000); console.error(e); }
+  document.getElementById('gen-loading').classList.add('hidden');
+}
+
+async function saveGeneratedFiche(){
+  if(!lastGeneratedFiche) return;
+  const {html,domain,type,levels,theme}=lastGeneratedFiche;
+  const title=`Fiche ${domain}${theme?' — '+theme:''} (${levels})`;
+  const blob=new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title></head><body>${html}</body></html>`],{type:'text/html'});
+  const fileName=`fiche-gen-${Date.now()}.html`;
+  const {data:up}=await sb.storage.from('ateliers-photos').upload(fileName,blob,{contentType:'text/html'});
+  let file_url=null;
+  if(up){const {data:url}=sb.storage.from('ateliers-photos').getPublicUrl(fileName);file_url=url.publicUrl;}
+  const row={title,domain,type_fiche:type,objectif:`Fiche ${type} niveau ${levels}`,levels:levels.split(',').map(s=>s.trim()).filter(Boolean),notes:theme||'',file_url,source:'generee'};
+  const {data,error}=await sb.from('fiches').insert([row]).select();
+  if(error){toast('Erreur : '+error.message,5000);return;}
+  fiches.unshift(data[0]);
+  document.getElementById('badge-fiches').textContent=fiches.length;
+  closeModal('modal-gen-fiche');
+  renderFiches();
+  lastGeneratedFiche=null;
+  document.getElementById('gen-preview').classList.add('hidden');
+  document.getElementById('gen-save-btn').style.display='none';
+  toast('✅ Fiche sauvegardée dans vos ressources !');
+}
+
+function printFiche(id){
+  const f=fiches.find(x=>x.id===id);
+  if(f&&f.file_url) window.open(f.file_url,'_blank');
+}
+
+</script>
+</body>
+</html>
